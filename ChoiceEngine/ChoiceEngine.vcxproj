@@ -11,11 +11,21 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Core\BaseMath.h" />
+    <ClCompile Include="Core\Color.cpp" />
+    <ClCompile Include="Core\Math\Matrix3.cpp" />
+    <ClCompile Include="Core\Math\Matrix4.cpp" />
+    <ClCompile Include="Core\Math\Vector2.cpp" />
+    <ClCompile Include="Core\Math\Vector3.cpp" />
+    <ClCompile Include="Core\Math\Vector4.cpp" />
+    <ClCompile Include="TestApp.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Core\BaseMath.cpp" />
-    <ClCompile Include="TestApp.cpp" />
+    <ClInclude Include="Core\Color.h" />
+    <ClInclude Include="Core\Math\Matrix3.h" />
+    <ClInclude Include="Core\Math\Matrix4.h" />
+    <ClInclude Include="Core\Math\Vector2.h" />
+    <ClInclude Include="Core\Math\Vector3.h" />
+    <ClInclude Include="Core\Math\Vector4.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{FF555CED-4DB8-4EF4-BCB9-94A9E9C009D7}</ProjectGuid>
