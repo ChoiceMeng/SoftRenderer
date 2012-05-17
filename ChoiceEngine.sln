@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ChoiceEngine", "ChoiceEngine\ChoiceEngine.vcxproj", "{E9F5BCC9-552C-4F12-ACCF-08BB5453CBBC}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ChoiceEngine", "ChoiceEngine\ChoiceEngine.vcxproj", "{FF555CED-4DB8-4EF4-BCB9-94A9E9C009D7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -9,10 +9,10 @@ Global
 		Release|Win32 = Release|Win32
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{E9F5BCC9-552C-4F12-ACCF-08BB5453CBBC}.Debug|Win32.ActiveCfg = Debug|Win32
-		{E9F5BCC9-552C-4F12-ACCF-08BB5453CBBC}.Debug|Win32.Build.0 = Debug|Win32
-		{E9F5BCC9-552C-4F12-ACCF-08BB5453CBBC}.Release|Win32.ActiveCfg = Release|Win32
-		{E9F5BCC9-552C-4F12-ACCF-08BB5453CBBC}.Release|Win32.Build.0 = Release|Win32
+		{FF555CED-4DB8-4EF4-BCB9-94A9E9C009D7}.Debug|Win32.ActiveCfg = Debug|Win32
+		{FF555CED-4DB8-4EF4-BCB9-94A9E9C009D7}.Debug|Win32.Build.0 = Debug|Win32
+		{FF555CED-4DB8-4EF4-BCB9-94A9E9C009D7}.Release|Win32.ActiveCfg = Release|Win32
+		{FF555CED-4DB8-4EF4-BCB9-94A9E9C009D7}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
