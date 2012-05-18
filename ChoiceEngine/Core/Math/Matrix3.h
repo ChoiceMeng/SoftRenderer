@@ -37,6 +37,26 @@ namespace CE
 									   m_fValue[2][0] + rV[2][0], m_fValue[1][1] + rV[1][1], m_fValue[2][2] + rV[2][2]);
 			}
 
+			Matrix3 operator-(const Matrix3& rV)
+			{
+				return Matrix3(m_fValue[0][0] - rV[0][0], m_fValue[0][1] - rV[0][1], m_fValue[0][2] - rV[0][2],
+					m_fValue[1][0] - rV[1][0], m_fValue[1][1] - rV[1][1], m_fValue[2][2] - rV[2][2],
+					m_fValue[2][0] - rV[2][0], m_fValue[1][1] - rV[1][1], m_fValue[2][2] - rV[2][2]);
+			}
+
+			Matrix3 operator*(const Matrix3& rV)
+			{
+				Matrix3 mat;
+				for(int row = 0; row < 3; ++row)
+				{
+					for(int col = 0; col < 3; ++col)
+					{
+						mat[row][col] = m_fValue[row][0] * rV[0][col] + m_fValue[row][1] * rV[1][col] + m_fValue[row][2] * rV[2][col];
+					}
+				}
+			}
+
+		public:
 			float m_fValue[3][3];
 		};
 	}
