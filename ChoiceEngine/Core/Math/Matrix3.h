@@ -1,4 +1,7 @@
 #pragma once
+#include <cmath>
+#include <memory.h>
+#include "Vector3.h"
 
 namespace CE
 {
@@ -32,16 +35,16 @@ namespace CE
 
 			Matrix3 operator+(const Matrix3& rV)
 			{
-				return Matrix3(m_fValue[0][0] + rV[0][0], m_fValue[0][1] + rV[0][1], m_fValue[0][2] + rV[0][2],
-									   m_fValue[1][0] + rV[1][0], m_fValue[1][1] + rV[1][1], m_fValue[2][2] + rV[2][2],
-									   m_fValue[2][0] + rV[2][0], m_fValue[1][1] + rV[1][1], m_fValue[2][2] + rV[2][2]);
+				return Matrix3(m_fValue[0][0] + rV.m_fValue[0][0], m_fValue[0][1] + rV.m_fValue[0][1], m_fValue[0][2] + rV.m_fValue[0][2],
+									   m_fValue[1][0] + rV.m_fValue[1][0], m_fValue[1][1] + rV.m_fValue[1][1], m_fValue[2][2] + rV.m_fValue[2][2],
+									   m_fValue[2][0] + rV.m_fValue[2][0], m_fValue[1][1] + rV.m_fValue[1][1], m_fValue[2][2] + rV.m_fValue[2][2]);
 			}
 
 			Matrix3 operator-(const Matrix3& rV)
 			{
-				return Matrix3(m_fValue[0][0] - rV[0][0], m_fValue[0][1] - rV[0][1], m_fValue[0][2] - rV[0][2],
-					m_fValue[1][0] - rV[1][0], m_fValue[1][1] - rV[1][1], m_fValue[2][2] - rV[2][2],
-					m_fValue[2][0] - rV[2][0], m_fValue[1][1] - rV[1][1], m_fValue[2][2] - rV[2][2]);
+				return Matrix3(m_fValue[0][0] - rV.m_fValue[0][0], m_fValue[0][1] - rV.m_fValue[0][1], m_fValue[0][2] - rV.m_fValue[0][2],
+					m_fValue[1][0] - rV.m_fValue[1][0], m_fValue[1][1] - rV.m_fValue[1][1], m_fValue[2][2] - rV.m_fValue[2][2],
+					m_fValue[2][0] - rV.m_fValue[2][0], m_fValue[1][1] - rV.m_fValue[1][1], m_fValue[2][2] - rV.m_fValue[2][2]);
 			}
 
 			Matrix3 operator*(const Matrix3& rV)
@@ -51,11 +54,49 @@ namespace CE
 				{
 					for(int col = 0; col < 3; ++col)
 					{
-						mat[row][col] = m_fValue[row][0] * rV[0][col] + m_fValue[row][1] * rV[1][col] + m_fValue[row][2] * rV[2][col];
+						mat.m_fValue[row][col] = m_fValue[row][0] * rV.m_fValue[0][col] + m_fValue[row][1] * rV.m_fValue[1][col] + m_fValue[row][2] * rV.m_fValue[2][col];
 					}
 				}
 			}
 
+			Vector3 Matrix3::operator*(const Vector3& rV)
+			{
+				Vector3 result;
+				for(int i = 0; i < 3; ++i)
+				{
+					result[i] = m_fValue[i][0] * rV.m_fX + m_fValue[i][1] * rV.m_fY + m_fValue[i][2] * rV.m_fZ;
+				}
+			}
+
+			double Matrix3::DetM()
+			{
+				return m_fValue[0][0]*(m_fValue[1][1] * m_fValue[2][2] - m_fValue[1][2]*m_fValue[2][1]) +
+					   m_fValue[0][1]*(m_fValue[1][2] * m_fValue[2][0] - m_fValue[1][0]*m_fValue[2][2]) +
+					   m_fValue[0][2]*(m_fValue[1][0] * m_fValue[2][1] - m_fValue[1][0]*m_fValue[2][0]);
+			}
+
+			Matrix3 Matrix3::Inverse()
+			{
+				double detM = DetM();
+
+				double detM_inv = 1 / detM;
+
+				Matrix3 resultMat;
+				
+				resultMat.m_fValue[0][0] = detM_inv * (m_fValue[1][1] * m_fValue[2][2] - m_fValue[1][2] * m_fValue[2][1]);
+				resultMat.m_fValue[0][1] = -detM_inv * (m_fValue[0][1] * m_fValue[2][2] - m_fValue[0][2] * m_fValue[2][1]);
+				resultMat.m_fValue[0][2] = detM_inv * (m_fValue[0][1] * m_fValue[1][2] - m_fValue[0][2] * m_fValue[1][1]);
+
+				resultMat.m_fValue[1][0] = -detM_inv * (m_fValue[1][0] * m_fValue[2][2] - m_fValue[1][2] * m_fValue[2][0]);
+				resultMat.m_fValue[1][1] = detM_inv * (m_fValue[0][0] * m_fValue[2][2] - m_fValue[0][2] * m_fValue[2][0]);
+				resultMat.m_fValue[1][2] = -detM_inv * (m_fValue[0][1] * m_fValue[1][2] - m_fValue[0][2] * m_fValue[1][0]);
+
+				resultMat.m_fValue[2][0] = detM_inv * (m_fValue[1][0] * m_fValue[2][1] - m_fValue[1][1] * m_fValue[2][0]);
+				resultMat.m_fValue[2][1] = -detM_inv * (m_fValue[0][0] * m_fValue[2][1] - m_fValue[0][1] * m_fValue[2][0]);
+				resultMat.m_fValue[2][2] = detM_inv * (m_fValue[0][0] * m_fValue[1][1] - m_fValue[0][1] * m_fValue[1][0]);
+
+				return resultMat;
+			}
 		public:
 			float m_fValue[3][3];
 		};

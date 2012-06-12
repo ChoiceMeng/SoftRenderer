@@ -1,14 +1,14 @@
-#include "Matrix3.h"
+#include "Matrix4.h"
 
 namespace CE
 {
 	namespace Math
 	{
-		Matrix3::Matrix3(void)
+		Matrix4::Matrix4(void)
 		{
 		}
 
-		Matrix3::~Matrix3(void)
+		Matrix4::~Matrix4(void)
 		{
 		}
 	}

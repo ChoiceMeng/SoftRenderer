@@ -14,6 +14,7 @@
     <ClCompile Include="Core\Color.cpp" />
     <ClCompile Include="Core\Math\Matrix3.cpp" />
     <ClCompile Include="Core\Math\Matrix4.cpp" />
+    <ClCompile Include="Core\Math\Quaternion.cpp" />
     <ClCompile Include="Core\Math\Vector2.cpp" />
     <ClCompile Include="Core\Math\Vector3.cpp" />
     <ClCompile Include="Core\Math\Vector4.cpp" />
@@ -23,6 +24,7 @@
     <ClInclude Include="Core\Color.h" />
     <ClInclude Include="Core\Math\Matrix3.h" />
     <ClInclude Include="Core\Math\Matrix4.h" />
+    <ClInclude Include="Core\Math\Quaternion.h" />
     <ClInclude Include="Core\Math\Vector2.h" />
     <ClInclude Include="Core\Math\Vector3.h" />
     <ClInclude Include="Core\Math\Vector4.h" />
