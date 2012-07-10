@@ -13,120 +13,113 @@ namespace CE
 {
 	namespace Math
 	{
-		class Vector3
+		class Vector2
 		{
 		public:
-			Vector3(float x, float y, float z)
+			Vector2()
+			{
+
+			}
+
+			Vector2(float x, float y)
 			{
 				m_fX = x;
 				m_fY = y;
-				m_fZ = z;
 			}
 
-			inline Vector3 operator *(const float nScale)
+			inline Vector2 operator *(const float nScale)
 			{
-				return Vector3(m_fX * nScale, m_fY * nScale, m_fZ * nScale);
+				return Vector2(m_fX * nScale, m_fY * nScale);
 			}
 
-			inline Vector3 operator *(const Vector3& vec)
+			inline Vector2 operator *(const Vector2& vec)
 			{
-				return Vector3(m_fX * vec.m_fX, m_fY * vec.m_fY, m_fZ * vec.m_fZ);
+				return Vector2(m_fX * vec.m_fX, m_fY * vec.m_fY);
 			}
 
-			inline Vector3 operator +(const Vector3& vec)
+			inline Vector2 operator +(const Vector2& vec)
 			{
-				return Vector3(m_fX + vec.m_fX, m_fY + vec.m_fY, m_fZ + vec.m_fZ);
+				return Vector2(m_fX + vec.m_fX, m_fY + vec.m_fY);
 			}
 
-			inline Vector3 operator -(const Vector3& vec)
+			inline Vector2 operator -(const Vector2& vec)
 			{
-				return Vector3(m_fX - vec.m_fX, m_fY - vec.m_fY, m_fZ - vec.m_fZ);
+				return Vector2(m_fX - vec.m_fX, m_fY - vec.m_fY);
 			}
 
-			inline Vector3 operator /(const float nScale)
+			inline Vector2 operator /(const float nScale)
 			{
 				float fScale = 1.0 / nScale;
 
-				return Vector3(m_fX * fScale, m_fY * fScale, m_fZ * fScale);
+				return Vector2(m_fX * fScale, m_fY * fScale);
 			}
 
-			inline Vector3 operator /(const Vector3& vec)
+			inline Vector2 operator /(const Vector2& vec)
 			{
-				return Vector3(m_fX / vec.m_fX, m_fY / vec.m_fY, m_fZ / vec.m_fZ);
+				return Vector2(m_fX / vec.m_fX, m_fY / vec.m_fY);
 			}
 
-			inline Vector3 operator *=(int nScale)
+			inline Vector2 operator *=(int nScale)
 			{
 				m_fX *= nScale;
 				m_fY *= nScale;
-				m_fZ *= nScale;
 
 				return *this;
 			}
 
-			inline Vector3 operator *=(const Vector3& vec)
+			inline Vector2 operator *=(const Vector2& vec)
 			{
 				m_fX *= vec.m_fX;
 				m_fY *= vec.m_fY;
-				m_fZ *= vec.m_fZ;
 
 				return *this;
 			}
 
-			inline Vector3 operator +=(const Vector3& vec)
+			inline Vector2 operator +=(const Vector2& vec)
 			{
 				m_fX += vec.m_fX;
 				m_fY += vec.m_fY;
-				m_fZ += vec.m_fZ;
 
 				return *this;
 			}
 
-			inline Vector3 operator -=(const Vector3& vec)
+			inline Vector2 operator -=(const Vector2& vec)
 			{
 				m_fX -= vec.m_fX;
 				m_fY -= vec.m_fY;
-				m_fZ -= vec.m_fZ;
 
 				return *this;
 			}
 
-			inline Vector3 operator /=(const Vector3& vec)
+			inline Vector2 operator /=(const Vector2& vec)
 			{
 				m_fX /= vec.m_fX;
 				m_fY /= vec.m_fY;
-				m_fZ /= vec.m_fZ;
 
 				return *this;
 			}
 
-			inline Vector3 operator /=(int nScale)
+			inline Vector2 operator /=(int nScale)
 			{
 				m_fX /= nScale;
 				m_fY /= nScale;
-				m_fZ /= nScale;
 
 				return *this;
 			}
 
 			inline float Length()
 			{
-				return sqrt( m_fX * m_fX + m_fY * m_fY + m_fZ * m_fZ );
+				return sqrt( m_fX * m_fX + m_fY * m_fY );
 			}
 
-			inline float Distance(const Vector3& vec)
+			inline float Distance(const Vector2& vec)
 			{
 				return (*this - vec).Length();
 			}
 
-			inline float DotVector(const Vector3& vec)
+			inline float DotVector(const Vector2& vec)
 			{
-				return m_fX * vec.m_fX + m_fY * vec.m_fY + m_fZ * vec.m_fZ;
-			}
-
-			inline Vector3 CrossVector(const Vector3& vec)
-			{
-				return Vector3(m_fY * vec.m_fZ - m_fZ * vec.m_fY, m_fZ * vec.m_fX - m_fX * vec.m_fZ, m_fX * vec.m_fY - m_fY * vec.m_fX);
+				return m_fX * vec.m_fX + m_fY * vec.m_fY;
 			}
 
 			inline void Nomalize()
@@ -138,16 +131,14 @@ namespace CE
 					float fFactor = 1.0 / fLength;
 					m_fX *= fFactor;
 					m_fY *= fFactor;
-					m_fZ *= fFactor;
 				}
 			}
 		public:
-			float m_fX, m_fY, m_fZ;
+			float m_fX, m_fY;
 
-			static const Vector3 ZERO;
-			static const Vector3 UNIT_X;
-			static const Vector3 UNIT_Y;
-			static const Vector3 UNIT_Z;
+			static const Vector2 ZERO;
+			static const Vector2 UNIT_X;
+			static const Vector2 UNIT_Y;
 		};
 	}
 }

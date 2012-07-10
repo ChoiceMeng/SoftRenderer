@@ -59,6 +59,22 @@ namespace CE
 				}
 			}
 
+			/*	MARK:
+				不能用行向量右乘矩阵或者列向量左乘矩阵。另外使用列向量右乘矩阵时使用的必须是列矩阵。关于行矩阵列矩阵的区别：
+
+				行矩阵：
+				三个轴向量为前三行，最后一行为位移变换
+				连乘时从左到右接合，左边的变换先应用
+				变换向量时为vector * matrix
+				列矩阵：
+				三个轴向量为前三列，最后一列为位移变换
+				连乘时从右到左接合，右边的变换先应用，注意这和*运算符的接合顺序相反
+				变换向量时为matrix * vector
+
+				DirectX采用了行矩阵，OpenGL采用了列矩阵
+
+				本引擎采用列矩阵和列向量，如果使用行矩阵那么下面的运算应该写进Vector3中
+			*/
 			Vector3 Matrix3::operator*(const Vector3& rV)
 			{
 				Vector3 result;
@@ -68,6 +84,7 @@ namespace CE
 				}
 			}
 
+			// 行列式
 			double Matrix3::DetM()
 			{
 				return m_fValue[0][0]*(m_fValue[1][1] * m_fValue[2][2] - m_fValue[1][2]*m_fValue[2][1]) +
@@ -75,6 +92,7 @@ namespace CE
 					   m_fValue[0][2]*(m_fValue[1][0] * m_fValue[2][1] - m_fValue[1][0]*m_fValue[2][0]);
 			}
 
+			// 逆矩阵
 			Matrix3 Matrix3::Inverse()
 			{
 				double detM = DetM();
