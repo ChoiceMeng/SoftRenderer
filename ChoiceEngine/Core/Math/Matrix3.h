@@ -7,7 +7,7 @@ namespace CE
 {
 	namespace Math
 	{
-		class Matrix3
+		class _declspec(dllexport)  Matrix3
 		{
 		public:
 			Matrix3(void);
@@ -57,6 +57,8 @@ namespace CE
 						mat.m_fValue[row][col] = m_fValue[row][0] * rV.m_fValue[0][col] + m_fValue[row][1] * rV.m_fValue[1][col] + m_fValue[row][2] * rV.m_fValue[2][col];
 					}
 				}
+
+				return mat;
 			}
 
 			/*	MARK:
@@ -82,6 +84,8 @@ namespace CE
 				{
 					result[i] = m_fValue[i][0] * rV.m_fX + m_fValue[i][1] * rV.m_fY + m_fValue[i][2] * rV.m_fZ;
 				}
+
+				return result;
 			}
 
 			// ÐÐÁÐÊ½

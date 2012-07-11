@@ -8,7 +8,7 @@ namespace CE
 {
 	namespace Math
 	{
-		class Matrix4
+		class _declspec(dllexport)  Matrix4
 		{
 		public:
 			Matrix4(void);
@@ -68,6 +68,8 @@ namespace CE
 						mat.m_fValue[row][col] = m_fValue[row][0] * rV.m_fValue[0][col] + m_fValue[row][1] * rV.m_fValue[1][col] + m_fValue[row][2] * rV.m_fValue[2][col] + m_fValue[row][3] * rV.m_fValue[3][col];
 					}
 				}
+
+				return mat;
 			}
 
 			/*	MARK:
@@ -86,13 +88,15 @@ namespace CE
 
 				本引擎采用列矩阵和列向量，如果使用行矩阵那么下面的运算应该写进Vector4中
 			*/
-			Matrix4 operator*(const Vector4 rV)
+			Vector4 operator*(const Vector4 rV)
 			{
 				Vector4 vResult;
 				for(int i = 0; i < 4; ++i)
 				{
 					vResult[i] = m_fValue[i][0] * rV.m_fX + m_fValue[i][1] * rV.m_fY + m_fValue[i][2] * rV.m_fZ + m_fValue[i][3] * rV.m_fW;
 				}
+
+				return vResult;
 			}
 
 			float& operator()(int nRow, int nCol)
@@ -112,6 +116,8 @@ namespace CE
 					(mat(0, 1) * mat(1, 2) - mat(0, 2) * mat(1, 1)) * (mat(2, 0) * mat(3, 3) - mat(2, 3) * mat(3, 0)) -
 					(mat(0, 1) * mat(1, 3) - mat(0, 3) * mat(1, 1)) * (mat(2, 0) * mat(3, 2) - mat(2, 2) * mat(3, 0)) +
 					(mat(0, 2) * mat(1, 3) - mat(0, 3) * mat(1, 2)) * (mat(2, 0) * mat(3, 1) - mat(2, 1) * mat(3, 0));
+
+				return d;
 			}
 
 			// 逆矩阵

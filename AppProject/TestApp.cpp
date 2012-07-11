@@ -1,4 +1,5 @@
 #include <Windows.h>
+#include "Vector2.h"
 
 int WINAPI WinMain(
 	HINSTANCE hInstance,      // handle to current instance
@@ -7,5 +8,6 @@ int WINAPI WinMain(
 	int nCmdShow              // show state
 	)
 {
-
+	CE::Math::Vector2 vet;
+	vet.m_fX = 1;
 }

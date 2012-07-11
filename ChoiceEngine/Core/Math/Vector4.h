@@ -13,7 +13,7 @@ namespace CE
 {
 	namespace Math
 	{
-		class Vector4
+		class _declspec(dllexport)  Vector4
 		{
 		public:
 			Vector4()
