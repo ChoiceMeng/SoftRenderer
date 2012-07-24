@@ -86,7 +86,7 @@ namespace CE
 
 				DirectX采用了行矩阵，OpenGL采用了列矩阵
 
-				本引擎采用列矩阵和列向量，如果使用行矩阵那么下面的运算应该写进Vector4中
+				本引擎采用行优先存储矩阵和行向量，如果使用行矩阵那么下面的运算应该写进Vector4中
 			*/
 			Vector4 operator*(const Vector4 rV)
 			{
@@ -181,8 +181,29 @@ namespace CE
 
 				return out;
 			}
+
+			Matrix4 Matrix4::RotationX()
+			{
+				float sinA = sin(Degree_TO_Radian(degree));
+				float cosA = cos(Degree_TO_Radian(degree));
+
+
+			}
 		public:
+			/* 采用行优先存储格式
+				x1, y1, z1, w1,
+				x2, y2, z2, w2,
+				x3, y3, z3, w3,
+				dx,dy,dz,    1
+			*/
 			float m_fValue[4][4];
+			/*
+				ps 列优先存储
+				x1, x2, x3, dx,
+				y1, y2, y3, dy,
+				z1, z2, z3, dz,
+				w1,w2,w3, 1
+			*/
 		};
 	}
 }
