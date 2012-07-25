@@ -21,13 +21,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\Color.h" />
+    <ClInclude Include="Core\Math\MathGlobal.h" />
     <ClInclude Include="Core\Math\Matrix3.h" />
     <ClInclude Include="Core\Math\Matrix4.h" />
     <ClInclude Include="Core\Math\Quaternion.h" />
     <ClInclude Include="Core\Math\Vector2.h" />
     <ClInclude Include="Core\Math\Vector3.h" />
     <ClInclude Include="Core\Math\Vector4.h" />
-    <ClInclude Include="MathGlobal.h" />
     <ClInclude Include="Pre.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

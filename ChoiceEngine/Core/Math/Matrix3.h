@@ -137,11 +137,6 @@ namespace CE
 
 				return mat;
 			}
-
-			inline Matrix3 Matrix3::RotateX(float fDegree)
-			{
-
-			}
 		public:
 			float m_fValue[3][3];
 		};

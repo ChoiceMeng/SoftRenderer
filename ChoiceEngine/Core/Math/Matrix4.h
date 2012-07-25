@@ -183,16 +183,72 @@ namespace CE
 				return out;
 			}
 
-			static Matrix4 RotateMatrix(float fDegree)
+			inline static Matrix4 RotateX(Matrix4& mat, float fDegree)
 			{
-				Matrix4 mat = *this;
 				float sinA = sin(Degree_TO_Radian(fDegree));
 				float cosA = cos(Degree_TO_Radian(fDegree));
 
-				mat.m[0][0] = cosA,		mat.m[0][1] = sinA, mat.m[0][2] = 0, mat.m[0][3] = 0;
-				mat.m[1][0] = -sinA,	mat.m[1][1] = cosA, mat.m[1][2] = 0, mat.m[1][3] = 0;
-				mat.m[2][0] = 0,		mat.m[2][1] = 0,	mat.m[2][2] = 1, mat.m[2][3] = 0,
-				mat.m[3][0] = 0,		mat.m[3][1] = 0,	mat.m[3][2] = 0, mat.m[3][3] = 1;
+				mat(0, 0) = 1, mat(0, 1) = 0, mat(0, 2) = 0, mat(0, 3) = 0,
+				mat(1, 0) = 0, mat(1, 1) = cosA, mat(1, 2) = sinA, mat(1, 3) = 0,
+				mat(2, 0) = 0, mat(2, 1) = -sinA, mat(2, 2) = cosA, mat(2, 3) = 0,
+				mat(3, 0) = 0, mat(3, 1) = 0, mat(3, 2) = 0, mat(3, 3) = 1;
+
+				return mat;
+			}
+
+			inline static Matrix4 RotateY(Matrix4& mat, float fDegree)
+			{
+				float sinA = sin(Degree_TO_Radian(fDegree));
+				float cosA = cos(Degree_TO_Radian(fDegree));
+
+				mat(0, 0) = cosA, mat(0, 1) = 0, mat(0, 2) = -sinA, mat(0, 3) = 0,
+					mat(1, 0) = 0, mat(1, 1) = 1, mat(1, 2) = 0, mat(1, 3) = 0,
+					mat(2, 0) = sinA, mat(2, 1) = 0, mat(2, 2) = cosA, mat(2, 3) = 0,
+					mat(3, 0) = 0, mat(3, 1) = 0, mat(3, 2) = 0, mat(3, 3) = 1;
+
+				return mat;
+			}
+
+			inline static Matrix4 RotateZ(Matrix4& mat, float fDegree)
+			{
+				float sinA = sin(Degree_TO_Radian(fDegree));
+				float cosA = cos(Degree_TO_Radian(fDegree));
+
+				mat(0, 0) = cosA, mat(0, 1) = sinA, mat(0, 2) = 0, mat(0, 3) = 0,
+					mat(1, 0) = -sinA, mat(1, 1) = cosA, mat(1, 2) = 0, mat(1, 3) = 0,
+					mat(2, 0) = 0, mat(2, 1) = 1, mat(2, 2) = 0, mat(2, 3) = 0,
+					mat(3, 0) = 0, mat(3, 1) = 0, mat(3, 2) = 0, mat(3, 3) = 1;
+
+				return mat;
+			}
+
+			// 获取平移变换矩阵
+			static Matrix4 TranslateMatrix44(Matrix4 &mat, float x, float y, float z)
+			{
+				mat.m_fValue[0][0] = 1, mat.m_fValue[0][1] = 0, mat.m_fValue[0][2] = 0, mat.m_fValue[0][3] = 0;
+				mat.m_fValue[1][0] = 0, mat.m_fValue[1][1] = 1, mat.m_fValue[1][2] = 0, mat.m_fValue[1][3] = 0;
+				mat.m_fValue[2][0] = 0, mat.m_fValue[2][1] = 0, mat.m_fValue[2][2] = 1, mat.m_fValue[2][3] = 0,
+					mat.m_fValue[3][0] = x, mat.m_fValue[3][1] = y, mat.m_fValue[3][2] = z, mat.m_fValue[3][3] = 1;
+
+				return mat;
+			}
+
+			//--------------------------------------------------------------------------
+
+			// 获取缩放变换矩阵
+			static Matrix4 ScaleMatrix44(Matrix4 &mat, float x, float y, float z)
+			{
+				//return FMatrix44(x, 0, 0, 0,
+				//				0, y, 0, 0,
+				//				0, 0, z, 0,
+				//				0, 0, 0, 1);
+
+				mat.m_fValue[0][0] = x, mat.m_fValue[0][1] = 0, mat.m_fValue[0][2] = 0, mat.m_fValue[0][3] = 0;
+				mat.m_fValue[1][0] = 0, mat.m_fValue[1][1] = y, mat.m_fValue[1][2] = 0, mat.m_fValue[1][3] = 0;
+				mat.m_fValue[2][0] = 0, mat.m_fValue[2][1] = 0, mat.m_fValue[2][2] = z, mat.m_fValue[2][3] = 0,
+					mat.m_fValue[3][0] = 0, mat.m_fValue[3][1] = 0, mat.m_fValue[3][2] = 0, mat.m_fValue[3][3] = 1;
+
+				return mat;
 			}
 		public:
 			/* 采用行优先存储格式
