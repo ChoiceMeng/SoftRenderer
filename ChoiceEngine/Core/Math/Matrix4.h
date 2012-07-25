@@ -3,6 +3,7 @@
 #include <memory.h>
 #include "Vector4.h"
 #include <assert.h>
+#include "Pre.h"
 
 namespace CE
 {
@@ -180,6 +181,18 @@ namespace CE
 					m(0, 2) * (m(1, 0) * m(2, 1) - m(1, 1) * m(2, 0)));
 
 				return out;
+			}
+
+			static Matrix4 RotateMatrix(float fDegree)
+			{
+				Matrix4 mat = *this;
+				float sinA = sin(Degree_TO_Radian(fDegree));
+				float cosA = cos(Degree_TO_Radian(fDegree));
+
+				mat.m[0][0] = cosA,		mat.m[0][1] = sinA, mat.m[0][2] = 0, mat.m[0][3] = 0;
+				mat.m[1][0] = -sinA,	mat.m[1][1] = cosA, mat.m[1][2] = 0, mat.m[1][3] = 0;
+				mat.m[2][0] = 0,		mat.m[2][1] = 0,	mat.m[2][2] = 1, mat.m[2][3] = 0,
+				mat.m[3][0] = 0,		mat.m[3][1] = 0,	mat.m[3][2] = 0, mat.m[3][3] = 1;
 			}
 		public:
 			float m_fValue[4][4];

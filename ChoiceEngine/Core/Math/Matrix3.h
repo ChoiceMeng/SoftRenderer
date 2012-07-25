@@ -1,6 +1,7 @@
 #pragma once
 #include <cmath>
 #include <memory.h>
+#include <assert.h>
 #include "Vector3.h"
 
 namespace CE
@@ -88,6 +89,13 @@ namespace CE
 				return result;
 			}
 
+			float& operator()(int nRow, int nCol)
+			{
+				assert(nRow < 3 && nCol < 3);
+
+				return m_fValue[nRow][nCol];
+			}
+
 			// ÐÐÁÐÊ½
 			double Matrix3::DetM()
 			{
@@ -118,6 +126,21 @@ namespace CE
 				resultMat.m_fValue[2][2] = detM_inv * (m_fValue[0][0] * m_fValue[1][1] - m_fValue[0][1] * m_fValue[1][0]);
 
 				return resultMat;
+			}
+
+			inline Matrix3 Matrix3::Scale(const float fScale)
+			{
+				Matrix3 mat = *this;
+				mat(0, 0) = fScale;
+				mat(1, 1) = fScale;
+				mat(2, 2) = fScale;
+
+				return mat;
+			}
+
+			inline Matrix3 Matrix3::RotateX(float fDegree)
+			{
+
 			}
 		public:
 			float m_fValue[3][3];
