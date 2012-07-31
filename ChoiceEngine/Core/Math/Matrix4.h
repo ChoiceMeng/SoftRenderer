@@ -111,6 +111,8 @@ namespace CE
 			double Matrix4::DetM()
 			{
 				Matrix4 mat = *this;
+
+				// 见3D数学基础图形与游戏开发 P122 或 WIZ笔记 利用代数余子式计算N*N阶矩阵行列式
 				double d = (mat(0, 0) * mat(1, 1) - mat(0, 1) * mat(1, 0)) * (mat(2, 2) * mat(3, 3) - mat(2, 3) * mat(3, 2)) -
 					(mat(0, 0) * mat(1, 2) - mat(0, 2) * mat(1, 0)) * (mat(2, 1) * mat(3, 3) - mat(2, 3) * mat(3, 1)) +
 					(mat(0, 0) * mat(1, 3) - mat(0, 3) * mat(1, 0)) * (mat(2, 1) * mat(3, 2) - mat(2, 2) * mat(3, 1)) +
