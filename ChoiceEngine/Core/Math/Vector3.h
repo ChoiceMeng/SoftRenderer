@@ -28,34 +28,34 @@ namespace CE
 				m_fZ = z;
 			}
 
-			inline Vector3 operator*(const float nScale)
+			inline Vector3 operator*(const float nScale) const
 			{
 				return Vector3(m_fX * nScale, m_fY * nScale, m_fZ * nScale);
 			}
 
-			inline Vector3 operator*(const Vector3& vec)
+			inline Vector3 operator*(const Vector3& vec) const
 			{
 				return Vector3(m_fX * vec.m_fX, m_fY * vec.m_fY, m_fZ * vec.m_fZ);
 			}
 
-			inline Vector3 operator+(const Vector3& vec)
+			inline Vector3 operator+(const Vector3& vec) const
 			{
 				return Vector3(m_fX + vec.m_fX, m_fY + vec.m_fY, m_fZ + vec.m_fZ);
 			}
 
-			inline Vector3 operator-(const Vector3& vec)
+			inline Vector3 operator-(const Vector3& vec) const
 			{
 				return Vector3(m_fX - vec.m_fX, m_fY - vec.m_fY, m_fZ - vec.m_fZ);
 			}
 
-			inline Vector3 operator/(const float nScale)
+			inline Vector3 operator/(const float nScale) const
 			{
 				float fScale = 1.0 / nScale;
 
 				return Vector3(m_fX * fScale, m_fY * fScale, m_fZ * fScale);
 			}
 
-			inline Vector3 operator/(const Vector3& vec)
+			inline Vector3 operator/(const Vector3& vec) const
 			{
 				return Vector3(m_fX / vec.m_fX, m_fY / vec.m_fY, m_fZ / vec.m_fZ);
 			}
@@ -140,6 +140,7 @@ namespace CE
 				return (m_fX != rV.m_fX || m_fY != rV.m_fY || m_fZ != rV.m_fZ);
 			}
 
+			// 向量的模
 			inline float Length()
 			{
 				return sqrt( m_fX * m_fX + m_fY * m_fY + m_fZ * m_fZ );
@@ -155,22 +156,25 @@ namespace CE
 				return m_fX * vec.m_fX + m_fY * vec.m_fY + m_fZ * vec.m_fZ;
 			}
 
-			inline Vector3 CrossVector(const Vector3& vec)
+			inline Vector3 CrossVector(Vector3& vec) const
 			{
 				return Vector3(m_fY * vec.m_fZ - m_fZ * vec.m_fY, m_fZ * vec.m_fX - m_fX * vec.m_fZ, m_fX * vec.m_fY - m_fY * vec.m_fX);
 			}
 
-			inline void Nomalize()
+			inline Vector3 Nomalize()
 			{
 				float fLength = Length();
 
 				if(fLength > 1e-8)
 				{
+					// 向量除以模
 					float fFactor = 1.0 / fLength;
 					m_fX *= fFactor;
 					m_fY *= fFactor;
 					m_fZ *= fFactor;
 				}
+
+				return *this;
 			}
 		public:
 			float m_fX, m_fY, m_fZ;

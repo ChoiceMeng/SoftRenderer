@@ -2,6 +2,7 @@
 #include <cmath>
 #include <memory.h>
 #include "Vector4.h"
+#include "Vector3.h"
 #include <assert.h>
 #include "Pre.h"
 
@@ -132,6 +133,7 @@ namespace CE
 
 				Matrix4 out;
 
+				// 见3D数学基础图形与游戏开发 P122 或 WIZ笔记 利用代数余子式计算N*N阶矩阵行列式
 				Matrix4 m = *this;
 				out(0, 0) = d * (m(1, 1) * (m(2, 2) * m(3, 3) - m(2, 3) * m(3, 2)) +
 					m(1, 2) * (m(2, 3) * m(3, 1) - m(2, 1) * m(3, 3)) +
@@ -185,7 +187,7 @@ namespace CE
 				return out;
 			}
 
-			inline static Matrix4 RotateX(Matrix4& mat, float fDegree)
+			inline static void RotateX(Matrix4& mat, float fDegree)
 			{
 				float sinA = sin(Degree_TO_Radian(fDegree));
 				float cosA = cos(Degree_TO_Radian(fDegree));
@@ -194,11 +196,9 @@ namespace CE
 				mat(1, 0) = 0, mat(1, 1) = cosA, mat(1, 2) = sinA, mat(1, 3) = 0,
 				mat(2, 0) = 0, mat(2, 1) = -sinA, mat(2, 2) = cosA, mat(2, 3) = 0,
 				mat(3, 0) = 0, mat(3, 1) = 0, mat(3, 2) = 0, mat(3, 3) = 1;
-
-				return mat;
 			}
 
-			inline static Matrix4 RotateY(Matrix4& mat, float fDegree)
+			inline static void RotateY(Matrix4& mat, float fDegree)
 			{
 				float sinA = sin(Degree_TO_Radian(fDegree));
 				float cosA = cos(Degree_TO_Radian(fDegree));
@@ -207,11 +207,9 @@ namespace CE
 					mat(1, 0) = 0, mat(1, 1) = 1, mat(1, 2) = 0, mat(1, 3) = 0,
 					mat(2, 0) = sinA, mat(2, 1) = 0, mat(2, 2) = cosA, mat(2, 3) = 0,
 					mat(3, 0) = 0, mat(3, 1) = 0, mat(3, 2) = 0, mat(3, 3) = 1;
-
-				return mat;
 			}
 
-			inline static Matrix4 RotateZ(Matrix4& mat, float fDegree)
+			inline static void RotateZ(Matrix4& mat, float fDegree)
 			{
 				float sinA = sin(Degree_TO_Radian(fDegree));
 				float cosA = cos(Degree_TO_Radian(fDegree));
@@ -220,25 +218,34 @@ namespace CE
 					mat(1, 0) = -sinA, mat(1, 1) = cosA, mat(1, 2) = 0, mat(1, 3) = 0,
 					mat(2, 0) = 0, mat(2, 1) = 1, mat(2, 2) = 0, mat(2, 3) = 0,
 					mat(3, 0) = 0, mat(3, 1) = 0, mat(3, 2) = 0, mat(3, 3) = 1;
+			}
 
-				return mat;
+			inline static void RotateByVector(Matrix4& mat, Vector3 n, float fDegree)
+			{
+				float sinA = sin(Degree_TO_Radian(fDegree));
+				float cosA = cos(Degree_TO_Radian(fDegree));
+
+				float oneCosA = 1 - cosA;
+
+				mat.m_fValue[0][0] = n.m_fX * n.m_fX * oneCosA + cosA,					mat.m_fValue[0][1] = n.m_fX * n.m_fY * oneCosA + n.m_fX * sinA,		mat.m_fValue[0][2] = n.m_fX * n.m_fZ * oneCosA - n.m_fY * sinA,		mat.m_fValue[0][3] = 0;
+				mat.m_fValue[1][0] = n.m_fX * n.m_fY * oneCosA - n.m_fZ * sinA,		mat.m_fValue[1][1] = n.m_fY * n.m_fY * oneCosA + cosA,						mat.m_fValue[1][2] = n.m_fY * n.m_fZ * oneCosA + n.m_fX * sinA,		mat.m_fValue[1][3] = 0;
+				mat.m_fValue[2][0] = n.m_fX * n.m_fZ * oneCosA + n.m_fY * sinA,		mat.m_fValue[2][1] = n.m_fY * n.m_fZ * oneCosA - n.m_fX * sinA,		mat.m_fValue[2][2] = n.m_fZ * n.m_fZ * oneCosA + cosA,					mat.m_fValue[2][3] = 0,
+				mat.m_fValue[3][0] = 0,																		mat.m_fValue[3][1] = 0,																		mat.m_fValue[3][2] = 0,																		mat.m_fValue[3][3] = 1;
 			}
 
 			// 获取平移变换矩阵
-			static Matrix4 TranslateMatrix44(Matrix4 &mat, float x, float y, float z)
+			static void TranslateMatrix44(Matrix4 &mat, float x, float y, float z)
 			{
 				mat.m_fValue[0][0] = 1, mat.m_fValue[0][1] = 0, mat.m_fValue[0][2] = 0, mat.m_fValue[0][3] = 0;
 				mat.m_fValue[1][0] = 0, mat.m_fValue[1][1] = 1, mat.m_fValue[1][2] = 0, mat.m_fValue[1][3] = 0;
 				mat.m_fValue[2][0] = 0, mat.m_fValue[2][1] = 0, mat.m_fValue[2][2] = 1, mat.m_fValue[2][3] = 0,
 					mat.m_fValue[3][0] = x, mat.m_fValue[3][1] = y, mat.m_fValue[3][2] = z, mat.m_fValue[3][3] = 1;
-
-				return mat;
 			}
 
 			//--------------------------------------------------------------------------
 
 			// 获取缩放变换矩阵
-			static Matrix4 ScaleMatrix44(Matrix4 &mat, float x, float y, float z)
+			static void ScaleMatrix44(Matrix4 &mat, float x, float y, float z)
 			{
 				//return FMatrix44(x, 0, 0, 0,
 				//				0, y, 0, 0,
@@ -248,9 +255,23 @@ namespace CE
 				mat.m_fValue[0][0] = x, mat.m_fValue[0][1] = 0, mat.m_fValue[0][2] = 0, mat.m_fValue[0][3] = 0;
 				mat.m_fValue[1][0] = 0, mat.m_fValue[1][1] = y, mat.m_fValue[1][2] = 0, mat.m_fValue[1][3] = 0;
 				mat.m_fValue[2][0] = 0, mat.m_fValue[2][1] = 0, mat.m_fValue[2][2] = z, mat.m_fValue[2][3] = 0,
-					mat.m_fValue[3][0] = 0, mat.m_fValue[3][1] = 0, mat.m_fValue[3][2] = 0, mat.m_fValue[3][3] = 1;
+				mat.m_fValue[3][0] = 0, mat.m_fValue[3][1] = 0, mat.m_fValue[3][2] = 0, mat.m_fValue[3][3] = 1;
+			}
 
-				return mat;
+			// 使用UVN相机系统构造观察矩阵
+			static void ViewMatrix(Matrix4& mat, const Vector3& eye, const Vector3& at, const Vector3& up)
+			{
+				// note:等号右边必须为常数
+				// Vector3 temp = at-eye;
+				Vector3 z = (at-eye).Nomalize();
+ 				Vector3 x = up.CrossVector(z).Nomalize();
+ 				Vector3 y = z.CrossVector(x).Nomalize();
+ 
+ 				mat.m_fValue[0][0] = x.m_fX,				mat.m_fValue[0][1] = y.m_fX,				mat.m_fValue[0][2] = z.m_fX,				mat.m_fValue[0][3] = 0;
+ 				mat.m_fValue[1][0] = x.m_fY,				mat.m_fValue[1][1] = y.m_fY,				mat.m_fValue[1][2] = z.m_fY,				mat.m_fValue[1][3] = 0;
+ 				mat.m_fValue[2][0] = x.m_fZ,				mat.m_fValue[2][1] = y.m_fZ,				mat.m_fValue[2][2] = z.m_fZ,				mat.m_fValue[2][3] = 0,
+ 				// eye在x,y,z基上的投影 仔细想想为什么
+ 				mat.m_fValue[3][0] = -x.DotVector(eye),		mat.m_fValue[3][1] = -y.DotVector(eye),		mat.m_fValue[3][2] = -z.DotVector(eye),		mat.m_fValue[3][3] = 1;
 			}
 		public:
 			/* 采用行优先存储格式
