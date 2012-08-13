@@ -87,8 +87,6 @@ namespace CE
 				变换向量时为matrix * vector
 
 				DirectX采用了行矩阵，OpenGL采用了列矩阵
-
-				本引擎采用行优先存储矩阵和行向量，如果使用行矩阵那么下面的运算应该写进Vector4中
 			*/
 			Vector4 operator*(const Vector4 rV)
 			{
@@ -272,6 +270,63 @@ namespace CE
  				mat.m_fValue[2][0] = x.m_fZ,				mat.m_fValue[2][1] = y.m_fZ,				mat.m_fValue[2][2] = z.m_fZ,				mat.m_fValue[2][3] = 0,
  				// eye在x,y,z基上的投影 仔细想想为什么
  				mat.m_fValue[3][0] = -x.DotVector(eye),		mat.m_fValue[3][1] = -y.DotVector(eye),		mat.m_fValue[3][2] = -z.DotVector(eye),		mat.m_fValue[3][3] = 1;
+			}
+
+			/*
+			我们有y’ = y * cot(fov/2) / z。这下完了，这是一个非线性变换，怎么用矩阵计算来完成呢？还好我们有w这个分量。注意到我们在做投影变换之前所进行的两次坐标变换——world变换和view变换，他们只是一系列旋转平移和缩放变换的叠加。仔细观察这些变换矩阵，你会发现它们其实不会影响向量的w分量。换句话说，只要不是故意，一个w分量等于1的向量，再来到投影变换之前他的w分量仍旧等于1。好的，接下来我们让w’= w*z, 新的w就记录下了view空间中的z值。同时在y分量上我们退而求其次，只要做到y’ = y * cot(fov/2)。那么，在做完线性变换之后，我们再用向量的y除以w，就得到了我们想要的最终的y值。
+			x分量的变换可以如法炮制，只是fov要换一换。事实上，很多用以生成投影变换矩阵的函数都使用了aspect这个参数。这个参数给出了视平截体截面的纵横比(这个比值应与view port的纵横比相等，否则变换结果会失真)。如果我们按照惯例，定义aspect = size of X / size of Y。那么我们就可以继续使用同一个fov而给出x分量的变换规则：x’ = x * cot(fov/2) / aspect。
+			现在只剩下z分量了。我们所渴望的变换应将z = Znear 变换到z = 0，将z = Zfar变换到z = 1。这个很简单，但是等等，x, y最后还要除以w，你z怎能例外。既然也要除，那么z = Zfar 就不能映射到z = 1了。唔，先映射到z = Zfar试试。于是，有z’ = Zfar*(z-Znear)/(Zfar – Znear)(线性插值原理:z’/(z-Znear) = Zfar(Zfar – Znear)。接下来，看看z’/z的性质。令f(z) = z’/z = Zfar*(z-Znear)/（z*(Zfar – Znear)）。
+			则f’(z) = Zfar * Znear / ( z^2 * (Zfar –Znear )), 显而易见f’(z) > 0。所以除了z = 0是一个奇点，函数f(z)是一个单调增的函数。因此，当Znear≤z≤Zfar时，f(Znear)≤f(z)≤f(Zfar),
+			即0≤f(z)≤1。
+			至此，我们可以给出投影变换的表达式了。
+			x’ = x*cot(fov/2)/aspect
+			y’ = y*cot(fov/2)
+			z’ = z*Zfar / ( Zfar – Znear ) – Zfar*Znear / ( Zfar – Znear )
+			w’ = z
+			这里的坐标已经归一化了，均落在-1,1的区间里
+			以矩阵表示，则得到变换矩阵如下，
+			cot(fov/2)/aspect 0 0 0
+			0 cot(fov/2) 0 0
+			0 0 Zfar/(Zfar-Znear) 1
+			0 0 -Zfar*Znear/(Zfar-Znear) 0。
+			做完线性变换之后，再进行所谓的“归一化”，即用w分量去除结果向量。
+			*/
+			// fov:俯仰视角 aspect:分辨率 zn:近裁面 zf:远裁面
+			static void ProjectMatrix(Matrix4& mat, float fov, float aspect, float zn, float zf)
+			{
+				mat.m_fValue[0][0] = 1/tan(fov/2),	mat.m_fValue[0][1] = 0,								mat.m_fValue[0][2] = 0,						mat.m_fValue[0][3] = 0;
+				mat.m_fValue[1][0] = 0,					mat.m_fValue[1][1] = 1/tan(fov/2)/aspect,	mat.m_fValue[1][2] =0,							mat.m_fValue[1][3] = 0;
+				mat.m_fValue[2][0] = 0,					mat.m_fValue[2][1] =0,									mat.m_fValue[2][2] = zf/(zf-zn),			mat.m_fValue[2][3] = 1,	// 存放z值
+				mat.m_fValue[3][0] = 0,					mat.m_fValue[3][1] = 0,								mat.m_fValue[3][2] = -zf*zn/(zf-zn),		mat.m_fValue[3][3] = 0;	
+			}
+
+			/*
+			从投影坐标变换到屏幕坐标 ： 
+			alpha = 0.5 * screen_width - 0.5
+			beta = 0.5 * screen_height - 0.5
+			screen_x = alpha + alpha * x
+			screen_y = beta - beta * y
+			这公式到底是怎么回事呢 ？ 咋这么一看，很难看出来，于是，我绝对对它进行提取公因式，可以得到新的公式 ：
+			screen_x = alpha * ( 1 + x )
+			screen_y = beta * ( 1 - y )
+			我们知道，alpha 是半个屏幕的宽度、beta 是半个屏幕的高度，那么，我们对 x 的三个特殊值进行计算，看看结果正不正确 ：
+			假设投影后，x 的值为 -1，那么 x 的屏幕坐标就是 ：
+			screen_x = alpha * ( 1 - 1 ) = alpha * 0 = 0
+			假设投影后，x 的值为 0，那么 x 的屏幕坐标就是 ：
+			screen_x = alpha * ( 1 + 0 ) = alpha * 1 = 0.5 * screen_width - 0.5
+			假设投影后，x 的值为 1，那么 x 的屏幕坐标就是：
+			screen_x = alpha * ( 1 + 1 ) = alpha * 2 = screen_width - 0.5
+			非常正确 ！！ x 从 [ -1, 1 ) 的区间正确地映射到了屏幕的 [ 0, screen_width ) 区间 ！！
+			*/
+			static void ScreenMatrix(Matrix4& mat, int width, int height)
+			{
+				int alpha = 0.5*width;
+				int beta = 0.5*height;
+
+				mat.m_fValue[0][0] = alpha,				mat.m_fValue[0][1] = 0,					mat.m_fValue[0][2] = 0,				mat.m_fValue[0][3] = 0;
+				mat.m_fValue[1][0] = 0,					mat.m_fValue[1][1] = -beta,				mat.m_fValue[1][2] =0,				mat.m_fValue[1][3] = 0;
+				mat.m_fValue[2][0] = 0,					mat.m_fValue[2][1] =0,						mat.m_fValue[2][2] =1,			mat.m_fValue[2][3] = 0,
+				mat.m_fValue[3][0] = alpha,				mat.m_fValue[3][1] = beta,				mat.m_fValue[3][2] = 0,		mat.m_fValue[3][3] = 1;	
 			}
 		public:
 			/* 采用行优先存储格式
