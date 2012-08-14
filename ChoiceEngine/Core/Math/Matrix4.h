@@ -344,6 +344,28 @@ namespace CE
 				w1,w2,w3, 1
 			*/
 		};
+
+		static Vector4 Vec4MulMat4W(const Vector4& vec, const Matrix4& mat)
+		{
+			Vector4 result;
+			result.m_fX = vec.m_fX * mat.m_fValue[0][0] + vec.m_fY * mat.m_fValue[1][0] + vec.m_fZ * mat.m_fValue[2][0] + vec.m_fW * mat.m_fValue[3][0];
+			result.m_fY = vec.m_fX * mat.m_fValue[0][1] + vec.m_fY * mat.m_fValue[1][1] + vec.m_fZ * mat.m_fValue[2][1] + vec.m_fW * mat.m_fValue[3][1];
+			result.m_fZ = vec.m_fX * mat.m_fValue[0][2] + vec.m_fY * mat.m_fValue[1][2] + vec.m_fZ * mat.m_fValue[2][2] + vec.m_fW * mat.m_fValue[3][2];
+			result.m_fW = vec.m_fX * mat.m_fValue[0][3] + vec.m_fY * mat.m_fValue[1][3] + vec.m_fZ * mat.m_fValue[2][3] + vec.m_fW * mat.m_fValue[3][3];
+
+			return result;
+		}
+
+		static Vector4 Vec4MulMat4(const Vector4& vec, const Matrix4& mat)
+		{
+			Vector4 result;
+			result.m_fX = vec.m_fX * mat.m_fValue[0][0] + vec.m_fY * mat.m_fValue[1][0] + vec.m_fZ * mat.m_fValue[2][0] + vec.m_fW * mat.m_fValue[3][0];
+			result.m_fY = vec.m_fX * mat.m_fValue[0][1] + vec.m_fY * mat.m_fValue[1][1] + vec.m_fZ * mat.m_fValue[2][1] + vec.m_fW * mat.m_fValue[3][1];
+			result.m_fZ = vec.m_fX * mat.m_fValue[0][2] + vec.m_fY * mat.m_fValue[1][2] + vec.m_fZ * mat.m_fValue[2][2] + vec.m_fW * mat.m_fValue[3][2];
+			result.m_fW = 1;
+
+			return result;
+		}
 	}
 }
 
