@@ -18,5 +18,16 @@
     <ClCompile Include="TestApp.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="Grapic.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Grapic.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="common.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
