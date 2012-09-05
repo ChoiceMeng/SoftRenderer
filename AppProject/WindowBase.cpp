@@ -2,7 +2,7 @@
 #include "Windowsx.h"
 #include <ctime>
 
-
+CWindowBase* CWindowBase::m_pMe;
 CWindowBase::CWindowBase(const std::string szWindowName, HINSTANCE hInstance):
 mWindowTitle(szWindowName), mHinstance(hInstance)
 {
@@ -251,4 +251,14 @@ void CWindowBase::OnPaint(HDC hdc)
 		DrawInfos();
 	}
 	mGraphics->FlipBuffer(hdc);*/
+}
+
+void CWindowBase::OnUpdate()
+{
+
+}
+
+void CWindowBase::UpdateWindow()
+{
+
 }
