@@ -60,7 +60,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>../ChoiceEngine/Core/Math/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../ChoiceEngine/Core/Math/;../ChoiceEngine;../ChoiceEngine/Core</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>NotSet</SubSystem>
