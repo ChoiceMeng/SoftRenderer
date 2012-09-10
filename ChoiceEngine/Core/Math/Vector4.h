@@ -23,100 +23,100 @@ namespace CE
 
 			Vector4(float x, float y, float z, float w)
 			{
-				m_fX = x;
-				m_fY = y;
-				m_fZ = z;
-				m_fW = w;
+				x = x;
+				y = y;
+				z = z;
+				w = w;
 			}
 
 			inline Vector4 operator*(const float nScale)
 			{
-				return Vector4(m_fX * nScale, m_fY * nScale, m_fZ * nScale, m_fW * nScale);
+				return Vector4(x * nScale, y * nScale, z * nScale, w * nScale);
 			}
 
 			inline Vector4 operator*(const Vector4& vec)
 			{
-				return Vector4(m_fX * vec.m_fX, m_fY * vec.m_fY, m_fZ * vec.m_fZ, m_fW * vec.m_fW);
+				return Vector4(x * vec.x, y * vec.y, z * vec.z, w * vec.w);
 			}
 
 			inline Vector4 operator+(const Vector4& vec)
 			{
-				return Vector4(m_fX + vec.m_fX, m_fY + vec.m_fY, m_fZ + vec.m_fZ, m_fW + vec.m_fW);
+				return Vector4(x + vec.x, y + vec.y, z + vec.z, w + vec.w);
 			}
 
 			inline Vector4 operator-(const Vector4& vec)
 			{
-				return Vector4(m_fX - vec.m_fX, m_fY - vec.m_fY, m_fZ - vec.m_fZ, m_fW - vec.m_fW);
+				return Vector4(x - vec.x, y - vec.y, z - vec.z, w - vec.w);
 			}
 
 			inline Vector4 operator/(const float nScale)
 			{
 				float fScale = 1.0 / nScale;
 
-				return Vector4(m_fX * fScale, m_fY * fScale, m_fZ * fScale, m_fW * m_fW);
+				return Vector4(x * fScale, y * fScale, z * fScale, w * w);
 			}
 
 			inline Vector4 operator/(const Vector4& vec)
 			{
-				return Vector4(m_fX / vec.m_fX, m_fY / vec.m_fY, m_fZ / vec.m_fZ, m_fW / vec.m_fW);
+				return Vector4(x / vec.x, y / vec.y, z / vec.z, w / vec.w);
 			}
 
 			inline Vector4 operator*=(int nScale)
 			{
-				m_fX *= nScale;
-				m_fY *= nScale;
-				m_fZ *= nScale;
-				m_fW *= nScale;
+				x *= nScale;
+				y *= nScale;
+				z *= nScale;
+				w *= nScale;
 
 				return *this;
 			}
 
 			inline Vector4 operator*=(const Vector4& vec)
 			{
-				m_fX *= vec.m_fX;
-				m_fY *= vec.m_fY;
-				m_fZ *= vec.m_fZ;
-				m_fW *= vec.m_fW;
+				x *= vec.x;
+				y *= vec.y;
+				z *= vec.z;
+				w *= vec.w;
 
 				return *this;
 			}
 
 			inline Vector4 operator+=(const Vector4& vec)
 			{
-				m_fX += vec.m_fX;
-				m_fY += vec.m_fY;
-				m_fZ += vec.m_fZ;
-				m_fW += vec.m_fW;
+				x += vec.x;
+				y += vec.y;
+				z += vec.z;
+				w += vec.w;
 
 				return *this;
 			}
 
 			inline Vector4 operator-=(const Vector4& vec)
 			{
-				m_fX -= vec.m_fX;
-				m_fY -= vec.m_fY;
-				m_fZ -= vec.m_fZ;
-				m_fW -= vec.m_fW;
+				x -= vec.x;
+				y -= vec.y;
+				z -= vec.z;
+				w -= vec.w;
 
 				return *this;
 			}
 
 			inline Vector4 operator/=(const Vector4& vec)
 			{
-				m_fX /= vec.m_fX;
-				m_fY /= vec.m_fY;
-				m_fZ /= vec.m_fZ;
-				m_fW /= vec.m_fW;
+				x /= vec.x;
+				y /= vec.y;
+				z /= vec.z;
+				w /= vec.w;
 
 				return *this;
 			}
 
 			inline Vector4 operator/=(int nScale)
 			{
-				m_fX /= nScale;
-				m_fY /= nScale;
-				m_fZ /= nScale;
-				m_fW /= nScale;
+				x /= nScale;
+				y /= nScale;
+				z /= nScale;
+				w /= nScale;
 
 				return *this;
 			}
@@ -126,18 +126,18 @@ namespace CE
 				if(nIdx >= 4)
 					return 0;
 
-				return *(&m_fX + nIdx);
+				return *(&x + nIdx);
 			}
 
 			inline float& operator[](const int nIdx)
 			{
 				if(nIdx >= 4)
-					return m_fX;
+					return x;
 
-				return *(&m_fX + nIdx);
+				return *(&x + nIdx);
 			}
 		public:
-			float m_fX, m_fY, m_fZ, m_fW;
+			float x, y, z, w;
 
 			static const Vector4 ZERO;
 			static const Vector4 UNIT_X;

@@ -70,3 +70,68 @@ void CGrapic::ShutdownGraphics()
 	//SafeDeleteArray(mFaces);
 	//SafeDeleteArray(mVertexs);
 }
+
+void CGrapic::BuildMatrix()
+{
+	assert(m_pCamera != NULL);
+	// 摄像机坐标系变换矩阵
+	Matrix4::ViewMatrix(mMatrix[TS_VIEW], m_pCamera->m_WorldPos, m_pCamera->m_LookAt, m_pCamera->m_Up);
+	// 透视坐标系变换矩阵
+	Matrix4::ProjectMatrix(mMatrix[TS_PROJECT],	Degree_TO_Radian(m_pCamera->m_Fov), 
+		(float)GetScreenWidth() / (float)GetScreenHeight(), 
+		m_pCamera->m_Near, m_pCamera->m_Far);
+	// 屏幕坐标系变换矩阵
+	Matrix4::ScreenMatrix(mMatrix[TS_SCRREN], GetScreenWidth(), GetScreenHeight());
+}
+
+void CGrapic::TanslateToViewSpace()
+{
+	Matrix4 mat = mMatrix[TS_LOCAL] * mMatrix[TS_WORLD] * mMatrix[TS_VIEW];
+	for (int i = 0; i < mVertexNum; i++)
+	{
+		CVertex& ver = mVertexs[i];
+		// 顶点变换到观察坐标系
+		ver.mVertex = Vec4MulMat4W(ver.mVertex, mat);
+		// 顶点法线
+		ver.mNormal = Vec4MulMat4W(ver.mNormal, mat);
+
+		ver.mVertexView = ver.mVertex;
+	}
+
+	Matrix4 invViewMat;
+	InverseMatrix4(invViewMat, mMatrix[TS_VIEW]);
+	Matrix4 invWorldMat;
+	InverseMatrix4(invWorldMat, mMatrix[TS_WORLD]);
+	Matrix4 invLocalMat;
+	InverseMatrix4(invLocalMat, mMatrix[TS_LOCAL]);
+	m_matWorld2Local = invViewMat * invWorldMat * invLocalMat;
+}
+
+void CGrapic::TanslateToProjectiveSpace()
+{
+	for (int i = 0; i < mVertexNum; i++)
+	{
+		CVertex& ver = mVertexs[i];
+		ver.mVertex = Vec4MulMat4W(ver.mVertex, mMatrix[TS_PROJECT]);
+		// 执行透视除法, 将齐次坐标变换到笛卡尔积坐标系
+		ver.mVertex /= ver.mVertex.w;
+	}
+}
+
+void CGrapic::TanslateToScreenSpace( const CFace& face, Vector4& v0, Vector4& v1, Vector4& v2 )
+{
+	v0 = Vec4MulMat4(mVertexs[face.mVertIndex[0]].mVertex, mMatrix[TS_SCRREN]);
+	v1 = Vec4MulMat4(mVertexs[face.mVertIndex[1]].mVertex, mMatrix[TS_SCRREN]);
+	v2 = Vec4MulMat4(mVertexs[face.mVertIndex[2]].mVertex, mMatrix[TS_SCRREN]);
+}
+
+void CGrapic::SetVertex( CVertex* vertexs, int vertexNum )
+{
+	if (mVertexNum != vertexNum)
+	{
+		delete[] mVertexs;
+		mVertexs = new CVertex[vertexNum];
+		mVertexNum = vertexNum;
+	}	
+	memcpy(mVertexs, vertexs, sizeof(CVertex) * vertexNum);
+}

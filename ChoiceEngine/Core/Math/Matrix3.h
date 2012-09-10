@@ -83,7 +83,7 @@ namespace CE
 				Vector3 result;
 				for(int i = 0; i < 3; ++i)
 				{
-					result[i] = m_fValue[i][0] * rV.m_fX + m_fValue[i][1] * rV.m_fY + m_fValue[i][2] * rV.m_fZ;
+					result[i] = m_fValue[i][0] * rV.x + m_fValue[i][1] * rV.y + m_fValue[i][2] * rV.z;
 				}
 
 				return result;

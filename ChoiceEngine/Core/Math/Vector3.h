@@ -23,93 +23,93 @@ namespace CE
 
 			Vector3(float x, float y, float z)
 			{
-				m_fX = x;
-				m_fY = y;
-				m_fZ = z;
+				x = x;
+				y = y;
+				z = z;
 			}
 
 			inline Vector3 operator*(const float nScale) const
 			{
-				return Vector3(m_fX * nScale, m_fY * nScale, m_fZ * nScale);
+				return Vector3(x * nScale, y * nScale, z * nScale);
 			}
 
 			inline Vector3 operator*(const Vector3& vec) const
 			{
-				return Vector3(m_fX * vec.m_fX, m_fY * vec.m_fY, m_fZ * vec.m_fZ);
+				return Vector3(x * vec.x, y * vec.y, z * vec.z);
 			}
 
 			inline Vector3 operator+(const Vector3& vec) const
 			{
-				return Vector3(m_fX + vec.m_fX, m_fY + vec.m_fY, m_fZ + vec.m_fZ);
+				return Vector3(x + vec.x, y + vec.y, z + vec.z);
 			}
 
 			inline Vector3 operator-(const Vector3& vec) const
 			{
-				return Vector3(m_fX - vec.m_fX, m_fY - vec.m_fY, m_fZ - vec.m_fZ);
+				return Vector3(x - vec.x, y - vec.y, z - vec.z);
 			}
 
 			inline Vector3 operator/(const float nScale) const
 			{
 				float fScale = 1.0 / nScale;
 
-				return Vector3(m_fX * fScale, m_fY * fScale, m_fZ * fScale);
+				return Vector3(x * fScale, y * fScale, z * fScale);
 			}
 
 			inline Vector3 operator/(const Vector3& vec) const
 			{
-				return Vector3(m_fX / vec.m_fX, m_fY / vec.m_fY, m_fZ / vec.m_fZ);
+				return Vector3(x / vec.x, y / vec.y, z / vec.z);
 			}
 
 			inline Vector3 operator*=(int nScale)
 			{
-				m_fX *= nScale;
-				m_fY *= nScale;
-				m_fZ *= nScale;
+				x *= nScale;
+				y *= nScale;
+				z *= nScale;
 
 				return *this;
 			}
 
 			inline Vector3 operator*=(const Vector3& vec)
 			{
-				m_fX *= vec.m_fX;
-				m_fY *= vec.m_fY;
-				m_fZ *= vec.m_fZ;
+				x *= vec.x;
+				y *= vec.y;
+				z *= vec.z;
 
 				return *this;
 			}
 
 			inline Vector3 operator+=(const Vector3& vec)
 			{
-				m_fX += vec.m_fX;
-				m_fY += vec.m_fY;
-				m_fZ += vec.m_fZ;
+				x += vec.x;
+				y += vec.y;
+				z += vec.z;
 
 				return *this;
 			}
 
 			inline Vector3 operator-=(const Vector3& vec)
 			{
-				m_fX -= vec.m_fX;
-				m_fY -= vec.m_fY;
-				m_fZ -= vec.m_fZ;
+				x -= vec.x;
+				y -= vec.y;
+				z -= vec.z;
 
 				return *this;
 			}
 
 			inline Vector3 operator/=(const Vector3& vec)
 			{
-				m_fX /= vec.m_fX;
-				m_fY /= vec.m_fY;
-				m_fZ /= vec.m_fZ;
+				x /= vec.x;
+				y /= vec.y;
+				z /= vec.z;
 
 				return *this;
 			}
 
 			inline Vector3 operator/=(int nScale)
 			{
-				m_fX /= nScale;
-				m_fY /= nScale;
-				m_fZ /= nScale;
+				x /= nScale;
+				y /= nScale;
+				z /= nScale;
 
 				return *this;
 			}
@@ -119,31 +119,31 @@ namespace CE
 				if(nIdx >= 3)
 					return 0;
 
-				return *(&m_fX + nIdx);
+				return *(&x + nIdx);
 			}
 
 			inline float& operator[](const int nIdx)
 			{
 				if(nIdx >= 3)
-					return m_fX;
+					return x;
 
-				return *(&m_fX + nIdx);
+				return *(&x + nIdx);
 			}
 
 			inline bool operator==(const Vector3& rV) const
 			{
-				return (m_fX == rV.m_fX && m_fY == rV.m_fY && m_fZ == rV.m_fZ);
+				return (x == rV.x && y == rV.y && z == rV.z);
 			}
 
 			inline bool operator!=(const Vector3& rV) const
 			{
-				return (m_fX != rV.m_fX || m_fY != rV.m_fY || m_fZ != rV.m_fZ);
+				return (x != rV.x || y != rV.y || z != rV.z);
 			}
 
 			// 向量的模
 			inline float Length()
 			{
-				return sqrt( m_fX * m_fX + m_fY * m_fY + m_fZ * m_fZ );
+				return sqrt( x * x + y * y + z * z );
 			}
 
 			inline float Distance(const Vector3& vec)
@@ -153,12 +153,12 @@ namespace CE
 
 			inline float DotVector(const Vector3& vec)
 			{
-				return m_fX * vec.m_fX + m_fY * vec.m_fY + m_fZ * vec.m_fZ;
+				return x * vec.x + y * vec.y + z * vec.z;
 			}
 
 			inline Vector3 CrossVector(Vector3& vec) const
 			{
-				return Vector3(m_fY * vec.m_fZ - m_fZ * vec.m_fY, m_fZ * vec.m_fX - m_fX * vec.m_fZ, m_fX * vec.m_fY - m_fY * vec.m_fX);
+				return Vector3(y * vec.z - z * vec.y, z * vec.x - x * vec.z, x * vec.y - y * vec.x);
 			}
 
 			inline Vector3 Nomalize()
@@ -169,15 +169,15 @@ namespace CE
 				{
 					// 向量除以模
 					float fFactor = 1.0 / fLength;
-					m_fX *= fFactor;
-					m_fY *= fFactor;
-					m_fZ *= fFactor;
+					x *= fFactor;
+					y *= fFactor;
+					z *= fFactor;
 				}
 
 				return *this;
 			}
 		public:
-			float m_fX, m_fY, m_fZ;
+			float x, y, z;
 
 			static const Vector3 ZERO;
 			static const Vector3 UNIT_X;

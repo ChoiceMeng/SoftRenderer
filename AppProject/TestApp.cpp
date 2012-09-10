@@ -9,5 +9,5 @@ int WINAPI WinMain(
 	)
 {
 	CE::Math::Vector2 vet;
-	vet.m_fX = 1;
+	vet.x = 1;
 }

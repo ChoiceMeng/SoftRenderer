@@ -18,6 +18,7 @@
   <ItemGroup>
     <ClInclude Include="common.h" />
     <ClInclude Include="Grapic.h" />
+    <ClInclude Include="Texture.h" />
     <ClInclude Include="WindowBase.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -66,7 +67,7 @@
       <SubSystem>NotSet</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>ChoiceEngine.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ChoiceEngine_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

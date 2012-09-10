@@ -215,7 +215,7 @@ void CLoad3DS::ProcessNextObjectChunk(t3DModel *pModel, t3DObject *pObject, tChu
 
 		case OBJECT_MATERIAL:				//read object material information
 			
-			// the chunk contain object material name, can be a color, can be a texture. and texture face
+			// the chunk contain object material name, can be a CColor, can be a texture. and texture face
 			// read material object name 
 			ReadObjectMaterial(pModel, pObject, m_CurrentChunk);			
 			break;
@@ -262,7 +262,7 @@ void CLoad3DS::ProcessNextMaterialChunk(t3DModel *pModel, tChunk *pPreviousChunk
 			m_CurrentChunk->bytesRead += fread(pModel->pMaterials[pModel->numOfMaterials - 1].strName, 1, m_CurrentChunk->length - m_CurrentChunk->bytesRead, m_FilePointer);
 			break;
 
-		case MATDIFFUSE:						// read object's color
+		case MATDIFFUSE:						// read object's CColor
 			ReadColorChunk(&(pModel->pMaterials[pModel->numOfMaterials - 1]), m_CurrentChunk);
 			break;
 		
@@ -324,15 +324,15 @@ int CLoad3DS::GetString(char *pBuffer)
 }
 
 
-//  read RGB color
+//  read RGB CColor
 void CLoad3DS::ReadColorChunk(tMaterialInfo *pMaterial, tChunk *pChunk)
 {
-	// read color chunk information
+	// read CColor chunk information
 	tChunk *m_TempChunk = new tChunk;
 	ReadChunk(m_TempChunk);
 
-	// read in RGB color
-	m_TempChunk->bytesRead += fread(pMaterial->color, 1, m_TempChunk->length - m_TempChunk->bytesRead, m_FilePointer);
+	// read in RGB CColor
+	m_TempChunk->bytesRead += fread(pMaterial->CColor, 1, m_TempChunk->length - m_TempChunk->bytesRead, m_FilePointer);
 
 	// add read in byte count
 	pChunk->bytesRead += m_TempChunk->bytesRead;
@@ -421,7 +421,7 @@ void CLoad3DS::ReadVertices(t3DObject *pObject, tChunk *pPreviousChunk)
 void CLoad3DS::ReadObjectMaterial(t3DModel *pModel, t3DObject *pObject, tChunk *pPreviousChunk)
 {
 	char strMaterial[255] = {0};			// use for saving material name
-	// material or color, or object texture, or luminance,or radiation information
+	// material or CColor, or object texture, or luminance,or radiation information
 
 	// read current object material name
 	pPreviousChunk->bytesRead += GetString(strMaterial);

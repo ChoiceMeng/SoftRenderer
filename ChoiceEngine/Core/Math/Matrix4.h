@@ -21,6 +21,13 @@ namespace CE
 				memcpy(m_fValue, value, sizeof(float) * 12);
 			}
 
+			Matrix4& operator=(const Matrix4& rV)
+			{
+				memcpy(m_fValue, rV.m_fValue, sizeof(float) * 12);
+
+				return *this;
+			}
+
 			Matrix4(const float v00, const float v01, const float v02, const float v03,
 						 const float v10, const float v11, const float v12, const float v13,
 						 const float v20, const float v21, const float v22, const float v23,
@@ -93,7 +100,7 @@ namespace CE
 				Vector4 vResult;
 				for(int i = 0; i < 4; ++i)
 				{
-					vResult[i] = m_fValue[i][0] * rV.m_fX + m_fValue[i][1] * rV.m_fY + m_fValue[i][2] * rV.m_fZ + m_fValue[i][3] * rV.m_fW;
+					vResult[i] = m_fValue[i][0] * rV.x + m_fValue[i][1] * rV.y + m_fValue[i][2] * rV.z + m_fValue[i][3] * rV.w;
 				}
 
 				return vResult;
@@ -225,9 +232,9 @@ namespace CE
 
 				float oneCosA = 1 - cosA;
 
-				mat.m_fValue[0][0] = n.m_fX * n.m_fX * oneCosA + cosA,					mat.m_fValue[0][1] = n.m_fX * n.m_fY * oneCosA + n.m_fX * sinA,		mat.m_fValue[0][2] = n.m_fX * n.m_fZ * oneCosA - n.m_fY * sinA,		mat.m_fValue[0][3] = 0;
-				mat.m_fValue[1][0] = n.m_fX * n.m_fY * oneCosA - n.m_fZ * sinA,		mat.m_fValue[1][1] = n.m_fY * n.m_fY * oneCosA + cosA,						mat.m_fValue[1][2] = n.m_fY * n.m_fZ * oneCosA + n.m_fX * sinA,		mat.m_fValue[1][3] = 0;
-				mat.m_fValue[2][0] = n.m_fX * n.m_fZ * oneCosA + n.m_fY * sinA,		mat.m_fValue[2][1] = n.m_fY * n.m_fZ * oneCosA - n.m_fX * sinA,		mat.m_fValue[2][2] = n.m_fZ * n.m_fZ * oneCosA + cosA,					mat.m_fValue[2][3] = 0,
+				mat.m_fValue[0][0] = n.x * n.x * oneCosA + cosA,					mat.m_fValue[0][1] = n.x * n.y * oneCosA + n.x * sinA,		mat.m_fValue[0][2] = n.x * n.z * oneCosA - n.y * sinA,		mat.m_fValue[0][3] = 0;
+				mat.m_fValue[1][0] = n.x * n.y * oneCosA - n.z * sinA,		mat.m_fValue[1][1] = n.y * n.y * oneCosA + cosA,						mat.m_fValue[1][2] = n.y * n.z * oneCosA + n.x * sinA,		mat.m_fValue[1][3] = 0;
+				mat.m_fValue[2][0] = n.x * n.z * oneCosA + n.y * sinA,		mat.m_fValue[2][1] = n.y * n.z * oneCosA - n.x * sinA,		mat.m_fValue[2][2] = n.z * n.z * oneCosA + cosA,					mat.m_fValue[2][3] = 0,
 				mat.m_fValue[3][0] = 0,																		mat.m_fValue[3][1] = 0,																		mat.m_fValue[3][2] = 0,																		mat.m_fValue[3][3] = 1;
 			}
 
@@ -265,9 +272,9 @@ namespace CE
  				Vector3 x = up.CrossVector(z).Nomalize();
  				Vector3 y = z.CrossVector(x).Nomalize();
  
- 				mat.m_fValue[0][0] = x.m_fX,				mat.m_fValue[0][1] = y.m_fX,				mat.m_fValue[0][2] = z.m_fX,				mat.m_fValue[0][3] = 0;
- 				mat.m_fValue[1][0] = x.m_fY,				mat.m_fValue[1][1] = y.m_fY,				mat.m_fValue[1][2] = z.m_fY,				mat.m_fValue[1][3] = 0;
- 				mat.m_fValue[2][0] = x.m_fZ,				mat.m_fValue[2][1] = y.m_fZ,				mat.m_fValue[2][2] = z.m_fZ,				mat.m_fValue[2][3] = 0,
+ 				mat.m_fValue[0][0] = x.x,				mat.m_fValue[0][1] = y.x,				mat.m_fValue[0][2] = z.x,				mat.m_fValue[0][3] = 0;
+ 				mat.m_fValue[1][0] = x.y,				mat.m_fValue[1][1] = y.y,				mat.m_fValue[1][2] = z.y,				mat.m_fValue[1][3] = 0;
+ 				mat.m_fValue[2][0] = x.z,				mat.m_fValue[2][1] = y.z,				mat.m_fValue[2][2] = z.z,				mat.m_fValue[2][3] = 0,
  				// eye在x,y,z基上的投影 仔细想想为什么
  				mat.m_fValue[3][0] = -x.DotVector(eye),		mat.m_fValue[3][1] = -y.DotVector(eye),		mat.m_fValue[3][2] = -z.DotVector(eye),		mat.m_fValue[3][3] = 1;
 			}
@@ -345,26 +352,37 @@ namespace CE
 			*/
 		};
 
-		static Vector4 Vec4MulMat4W(const Vector4& vec, const Matrix4& mat)
+		extern "C"
+
 		{
-			Vector4 result;
-			result.m_fX = vec.m_fX * mat.m_fValue[0][0] + vec.m_fY * mat.m_fValue[1][0] + vec.m_fZ * mat.m_fValue[2][0] + vec.m_fW * mat.m_fValue[3][0];
-			result.m_fY = vec.m_fX * mat.m_fValue[0][1] + vec.m_fY * mat.m_fValue[1][1] + vec.m_fZ * mat.m_fValue[2][1] + vec.m_fW * mat.m_fValue[3][1];
-			result.m_fZ = vec.m_fX * mat.m_fValue[0][2] + vec.m_fY * mat.m_fValue[1][2] + vec.m_fZ * mat.m_fValue[2][2] + vec.m_fW * mat.m_fValue[3][2];
-			result.m_fW = vec.m_fX * mat.m_fValue[0][3] + vec.m_fY * mat.m_fValue[1][3] + vec.m_fZ * mat.m_fValue[2][3] + vec.m_fW * mat.m_fValue[3][3];
+			// todo:此接口待重构移走
+			static Vector4 __stdcall Vec4MulMat4W(const Vector4& vec, const Matrix4& mat)
+			{
+				Vector4 result;
+				result.x = vec.x * mat.m_fValue[0][0] + vec.y * mat.m_fValue[1][0] + vec.z * mat.m_fValue[2][0] + vec.w * mat.m_fValue[3][0];
+				result.y = vec.x * mat.m_fValue[0][1] + vec.y * mat.m_fValue[1][1] + vec.z * mat.m_fValue[2][1] + vec.w * mat.m_fValue[3][1];
+				result.z = vec.x * mat.m_fValue[0][2] + vec.y * mat.m_fValue[1][2] + vec.z * mat.m_fValue[2][2] + vec.w * mat.m_fValue[3][2];
+				result.w = vec.x * mat.m_fValue[0][3] + vec.y * mat.m_fValue[1][3] + vec.z * mat.m_fValue[2][3] + vec.w * mat.m_fValue[3][3];
 
-			return result;
-		}
+				return result;
+			}
 
-		static Vector4 Vec4MulMat4(const Vector4& vec, const Matrix4& mat)
-		{
-			Vector4 result;
-			result.m_fX = vec.m_fX * mat.m_fValue[0][0] + vec.m_fY * mat.m_fValue[1][0] + vec.m_fZ * mat.m_fValue[2][0] + vec.m_fW * mat.m_fValue[3][0];
-			result.m_fY = vec.m_fX * mat.m_fValue[0][1] + vec.m_fY * mat.m_fValue[1][1] + vec.m_fZ * mat.m_fValue[2][1] + vec.m_fW * mat.m_fValue[3][1];
-			result.m_fZ = vec.m_fX * mat.m_fValue[0][2] + vec.m_fY * mat.m_fValue[1][2] + vec.m_fZ * mat.m_fValue[2][2] + vec.m_fW * mat.m_fValue[3][2];
-			result.m_fW = 1;
+			static Vector4 __stdcall Vec4MulMat4(const Vector4& vec, const Matrix4& mat)
+			{
+				Vector4 result;
+				result.x = vec.x * mat.m_fValue[0][0] + vec.y * mat.m_fValue[1][0] + vec.z * mat.m_fValue[2][0] + vec.w * mat.m_fValue[3][0];
+				result.y = vec.x * mat.m_fValue[0][1] + vec.y * mat.m_fValue[1][1] + vec.z * mat.m_fValue[2][1] + vec.w * mat.m_fValue[3][1];
+				result.z = vec.x * mat.m_fValue[0][2] + vec.y * mat.m_fValue[1][2] + vec.z * mat.m_fValue[2][2] + vec.w * mat.m_fValue[3][2];
+				result.w = 1;
 
-			return result;
+				return result;
+			}
+
+			static void __stdcall InverseMatrix4(Matrix4& out, const Matrix4& mat)
+			{
+				Matrix4 result(mat);
+				out = result.Inverse();
+			}
 		}
 	}
 }

@@ -23,93 +23,93 @@ namespace CE
 
 			Vector2(float x, float y)
 			{
-				m_fX = x;
-				m_fY = y;
+				x = x;
+				y = y;
 			}
 
 			inline Vector2 operator *(const float nScale)
 			{
-				return Vector2(m_fX * nScale, m_fY * nScale);
+				return Vector2(x * nScale, y * nScale);
 			}
 
 			inline Vector2 operator *(const Vector2& vec)
 			{
-				return Vector2(m_fX * vec.m_fX, m_fY * vec.m_fY);
+				return Vector2(x * vec.x, y * vec.y);
 			}
 
 			inline Vector2 operator +(const Vector2& vec)
 			{
-				return Vector2(m_fX + vec.m_fX, m_fY + vec.m_fY);
+				return Vector2(x + vec.x, y + vec.y);
 			}
 
 			inline Vector2 operator -(const Vector2& vec)
 			{
-				return Vector2(m_fX - vec.m_fX, m_fY - vec.m_fY);
+				return Vector2(x - vec.x, y - vec.y);
 			}
 
 			inline Vector2 operator /(const float nScale)
 			{
 				float fScale = 1.0 / nScale;
 
-				return Vector2(m_fX * fScale, m_fY * fScale);
+				return Vector2(x * fScale, y * fScale);
 			}
 
 			inline Vector2 operator /(const Vector2& vec)
 			{
-				return Vector2(m_fX / vec.m_fX, m_fY / vec.m_fY);
+				return Vector2(x / vec.x, y / vec.y);
 			}
 
 			inline Vector2 operator *=(int nScale)
 			{
-				m_fX *= nScale;
-				m_fY *= nScale;
+				x *= nScale;
+				y *= nScale;
 
 				return *this;
 			}
 
 			inline Vector2 operator *=(const Vector2& vec)
 			{
-				m_fX *= vec.m_fX;
-				m_fY *= vec.m_fY;
+				x *= vec.x;
+				y *= vec.y;
 
 				return *this;
 			}
 
 			inline Vector2 operator +=(const Vector2& vec)
 			{
-				m_fX += vec.m_fX;
-				m_fY += vec.m_fY;
+				x += vec.x;
+				y += vec.y;
 
 				return *this;
 			}
 
 			inline Vector2 operator -=(const Vector2& vec)
 			{
-				m_fX -= vec.m_fX;
-				m_fY -= vec.m_fY;
+				x -= vec.x;
+				y -= vec.y;
 
 				return *this;
 			}
 
 			inline Vector2 operator /=(const Vector2& vec)
 			{
-				m_fX /= vec.m_fX;
-				m_fY /= vec.m_fY;
+				x /= vec.x;
+				y /= vec.y;
 
 				return *this;
 			}
 
 			inline Vector2 operator /=(int nScale)
 			{
-				m_fX /= nScale;
-				m_fY /= nScale;
+				x /= nScale;
+				y /= nScale;
 
 				return *this;
 			}
 
 			inline float Length()
 			{
-				return sqrt( m_fX * m_fX + m_fY * m_fY );
+				return sqrt( x * x + y * y );
 			}
 
 			inline float Distance(const Vector2& vec)
@@ -119,7 +119,7 @@ namespace CE
 
 			inline float DotVector(const Vector2& vec)
 			{
-				return m_fX * vec.m_fX + m_fY * vec.m_fY;
+				return x * vec.x + y * vec.y;
 			}
 
 			inline void Nomalize()
@@ -129,12 +129,12 @@ namespace CE
 				if(fLength > 1e-8)
 				{
 					float fFactor = 1.0 / fLength;
-					m_fX *= fFactor;
-					m_fY *= fFactor;
+					x *= fFactor;
+					y *= fFactor;
 				}
 			}
 		public:
-			float m_fX, m_fY;
+			float x, y;
 
 			static const Vector2 ZERO;
 			static const Vector2 UNIT_X;

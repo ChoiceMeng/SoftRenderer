@@ -111,7 +111,7 @@ struct tMaterialInfo
 {
 	char			strName[255];			// texture name
 	char			strFile[255];			// if exist texture,it is texture name
-	unsigned char   color[3];				// object RGB color
+	unsigned char   CColor[3];				// object RGB CColor
 	int				texureId;				// texture ID
 	float			uTile;					// u repeat
 	float			vTile;					// v repeat

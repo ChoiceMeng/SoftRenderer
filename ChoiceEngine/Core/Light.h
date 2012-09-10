@@ -1,6 +1,8 @@
 #pragma once
-#include "Pre.h"
 #include "Color.h"
+#include "Vector4.h"
+using namespace CE::Core;
+using namespace CE::Math;
 
 class CLight
 {
@@ -26,9 +28,9 @@ private:
 
 	Ispec = Ks * Il * ( dot(V, (2 * dot(N,L) * N ¨C L ) )^Ns
 	*/
-	Color	m_dAmbient;
-	Color	m_dDiffuse;
-	Color	m_dSpecular;
+	CColor	m_dAmbient;
+	CColor	m_dDiffuse;
+	CColor	m_dSpecular;
 
 	float	m_fKAmbient;
 	float	m_fKDiffuse;
