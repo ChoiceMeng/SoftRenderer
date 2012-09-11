@@ -1,12 +1,12 @@
 #include "Pre.h"
 
-class FTexture
+class CTexture
 {
 public:
 	int mWidth, mHeight;
 
-	FTexture(const std::string &filename);
-	~FTexture();
+	CTexture(const std::string &filename);
+	~CTexture();
 
 	inline std::string GetName() const { return mName; }
 	inline bool IsValid() const { return mValid;}

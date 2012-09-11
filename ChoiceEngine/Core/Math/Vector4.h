@@ -136,6 +136,44 @@ namespace CE
 
 				return *(&x + nIdx);
 			}
+
+			// 向量的模
+			inline float Length()
+			{
+				return sqrt( x * x + y * y + z * z );
+			}
+
+			inline float Distance(const Vector4& vec)
+			{
+				return (*this - vec).Length();
+			}
+
+			inline float DotVector(const Vector4& vec)
+			{
+				return x * vec.x + y * vec.y + z * vec.z;
+			}
+
+			inline Vector4 CrossVector(Vector4& vec) const
+			{
+				return Vector4(y * vec.z - z * vec.y, z * vec.x - x * vec.z, x * vec.y - y * vec.x, 1);
+			}
+
+			inline Vector4 Nomalize()
+			{
+				float fLength = Length();
+
+				if(fLength > 1e-8)
+				{
+					// 向量除以模
+					float fFactor = 1.0 / fLength;
+					x *= fFactor;
+					y *= fFactor;
+					z *= fFactor;
+					w = 1;
+				}
+
+				return *this;
+			}
 		public:
 			float x, y, z, w;
 

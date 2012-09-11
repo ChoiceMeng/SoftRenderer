@@ -135,3 +135,121 @@ void CGrapic::SetVertex( CVertex* vertexs, int vertexNum )
 	}	
 	memcpy(mVertexs, vertexs, sizeof(CVertex) * vertexNum);
 }
+
+void CGrapic::SetCamera( CCamera* camera )
+{
+	assert(camera);
+	m_pCamera = camera;
+}
+
+void CGrapic::SetTransform( ETS_Transform space, const Matrix4& mat )
+{
+	assert(space < TS_NUM && space >= TS_LOCAL);
+	mMatrix[space] = mat;
+}
+
+void CGrapic::SetTexture( /*int index, */CTexture* texture )
+{
+	assert(texture);
+	mTextures = texture;
+}
+
+void CGrapic::SetLight( /*int index, */CLight* light )
+{
+	assert(light);
+	mLights = light;
+}
+
+const static float DARK_COLOR_FACTOR = 0.05f;
+void CGrapic::ProcessLight()
+{
+	CLight* pLight = mLights;
+	if(pLight != NULL && pLight->m_bEnable)
+	{
+		// 目前就一盏灯
+		mLightPositionView = Vec4MulMat4(pLight->m_dWorldPos, mMatrix[TS_VIEW]);
+
+		if(mShadeType == SHADE_FLAT) // 平面着色
+		{
+			for(int i = 0; i < mFaceNum; ++i)
+			{
+				CFace& pFace = mFaces[i];
+				if(!pFace.isCulled)
+				{
+					Vector4 edge0 = mVertexs[pFace.mVertIndex[0]].mVertex - mVertexs[pFace.mVertIndex[1]].mVertex;
+					Vector4 edge1 = mVertexs[pFace.mVertIndex[0]].mVertex - mVertexs[pFace.mVertIndex[2]].mVertex;
+
+					Vector4 faceNormal = edge0.CrossVector(edge1);
+					Vector4 lightVect = (mLightPositionView - mVertexs[pFace.mVertIndex[0]].mVertex).Nomalize();
+
+					// 颜色系数
+					float dot = faceNormal.DotVector(lightVect);
+					if(dot < 0)
+						dot = DARK_COLOR_FACTOR;
+
+					pFace.mColor[0] *= dot;
+					pFace.mColor[1] *= dot;
+					pFace.mColor[2] *= dot;
+				}
+			}
+		}
+		else if(SHADE_GAUROUD == mShadeType)
+		{
+			// 对面的三个顶点分别计算光线夹角
+			for(int i = 0; i < mFaceNum; ++i)
+			{
+				CFace& face = mFaces[i];
+				if(!face.isCulled)
+				{
+					Vector4 v0Normal = mVertexs[mFaces[i].mVertIndex[0]].mVertex.Nomalize();
+					Vector4 v1Normal = mVertexs[mFaces[i].mVertIndex[1]].mVertex.Nomalize();
+					Vector4 v2Normal = mVertexs[mFaces[i].mVertIndex[2]].mVertex.Nomalize();
+
+					Vector4 lightDir0 = (mLightPositionView - mVertexs[mFaces[i].mVertIndex[0]].mVertex).Nomalize();
+					Vector4 lightDir1 = (mLightPositionView - mVertexs[mFaces[i].mVertIndex[1]].mVertex).Nomalize();
+					Vector4 lightDir2 = (mLightPositionView - mVertexs[mFaces[i].mVertIndex[2]].mVertex).Nomalize();
+
+					float dot = 1.0f;
+					dot = v0Normal.DotVector(lightDir0);
+					if(dot < 0)
+						dot = DARK_COLOR_FACTOR;
+					mFaces->mColor[0] *= dot;
+
+					dot = v1Normal.DotVector(lightDir1);
+					if(dot < 0)
+						dot = DARK_COLOR_FACTOR;
+					mFaces->mColor[1] *= dot;
+
+					dot = v2Normal.DotVector(lightDir2);
+					if(dot < 0)
+						dot = DARK_COLOR_FACTOR;
+					mFaces->mColor[2] *= dot;
+				}
+			}
+		}
+		else if(SHADE_PHONG_Vertex == mShadeType)
+		{
+			for(int i = 0; i < mFaceNum; ++i)
+			{
+				CFace& face = mFaces[i];
+				if(!face.isCulled)
+				{
+
+				}
+			}
+		}
+	}
+}
+
+void CGrapic::SetFace( CFace* faces, int faceNum )
+{
+	if (mFaceNum != faceNum)
+	{
+		delete[] mFaces;
+		mFaces = new CFace[faceNum];
+		mFaceNum = faceNum;
+	}
+	memcpy(mFaces, faces, sizeof(CFace) * faceNum);
+	mFaceNum += faceNum;
+}
+

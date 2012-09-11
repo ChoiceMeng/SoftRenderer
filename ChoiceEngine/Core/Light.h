@@ -9,7 +9,7 @@ class CLight
 public:
 	CLight(void);
 	~CLight(void);
-private:
+public:
 	Vector4 m_dWorldPos;
 	bool	m_bEnable;
 

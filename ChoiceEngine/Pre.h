@@ -5,6 +5,7 @@
 #include "Matrix4.h"
 #include "Core/Color.h"
 #include "Core/Geometry.h"
+#include "Core/Light.h"
 
 using namespace CE;
 using namespace CE::Math;
