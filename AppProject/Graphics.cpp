@@ -1,16 +1,16 @@
-#include "Grapic.h"
+#include "Graphics.h"
 
 HINSTANCE GHInstance;
-CGrapic::CGrapic(void)
+CGraphics::CGraphics(void)
 {
 }
 
 
-CGrapic::~CGrapic(void)
+CGraphics::~CGraphics(void)
 {
 }
 
-bool CGrapic::InitGDI( HINSTANCE hinstance )
+bool CGraphics::InitGDI( HINSTANCE hinstance )
 {
 	GHInstance = hinstance;
 
@@ -60,7 +60,7 @@ bool CGrapic::InitGDI( HINSTANCE hinstance )
 }
 
 // 关闭绘图系统
-void CGrapic::ShutdownGraphics()
+void CGraphics::ShutdownGraphicss()
 {
 	::DeleteObject(mPen);
 	::DeleteObject(mBgBrush);
@@ -71,7 +71,7 @@ void CGrapic::ShutdownGraphics()
 	//SafeDeleteArray(mVertexs);
 }
 
-void CGrapic::BuildMatrix()
+void CGraphics::BuildMatrix()
 {
 	assert(m_pCamera != NULL);
 	// 摄像机坐标系变换矩阵
@@ -84,7 +84,7 @@ void CGrapic::BuildMatrix()
 	Matrix4::ScreenMatrix(mMatrix[TS_SCRREN], GetScreenWidth(), GetScreenHeight());
 }
 
-void CGrapic::TanslateToViewSpace()
+void CGraphics::TranslateToViewSpace()
 {
 	Matrix4 mat = mMatrix[TS_LOCAL] * mMatrix[TS_WORLD] * mMatrix[TS_VIEW];
 	for (int i = 0; i < mVertexNum; i++)
@@ -107,7 +107,7 @@ void CGrapic::TanslateToViewSpace()
 	m_matWorld2Local = invViewMat * invWorldMat * invLocalMat;
 }
 
-void CGrapic::TanslateToProjectiveSpace()
+void CGraphics::TranslateToProjectiveSpace()
 {
 	for (int i = 0; i < mVertexNum; i++)
 	{
@@ -118,14 +118,14 @@ void CGrapic::TanslateToProjectiveSpace()
 	}
 }
 
-void CGrapic::TanslateToScreenSpace( const CFace& face, Vector4& v0, Vector4& v1, Vector4& v2 )
+void CGraphics::TranslateToScreenSpace( const CFace& face, Vector4& v0, Vector4& v1, Vector4& v2 )
 {
 	v0 = Vec4MulMat4(mVertexs[face.mVertIndex[0]].mVertex, mMatrix[TS_SCRREN]);
 	v1 = Vec4MulMat4(mVertexs[face.mVertIndex[1]].mVertex, mMatrix[TS_SCRREN]);
 	v2 = Vec4MulMat4(mVertexs[face.mVertIndex[2]].mVertex, mMatrix[TS_SCRREN]);
 }
 
-void CGrapic::SetVertex( CVertex* vertexs, int vertexNum )
+void CGraphics::SetVertex( CVertex* vertexs, int vertexNum )
 {
 	if (mVertexNum != vertexNum)
 	{
@@ -136,32 +136,32 @@ void CGrapic::SetVertex( CVertex* vertexs, int vertexNum )
 	memcpy(mVertexs, vertexs, sizeof(CVertex) * vertexNum);
 }
 
-void CGrapic::SetCamera( CCamera* camera )
+void CGraphics::SetCamera( CCamera* camera )
 {
 	assert(camera);
 	m_pCamera = camera;
 }
 
-void CGrapic::SetTransform( ETS_Transform space, const Matrix4& mat )
+void CGraphics::SetTransform( ETS_Transform space, const Matrix4& mat )
 {
 	assert(space < TS_NUM && space >= TS_LOCAL);
 	mMatrix[space] = mat;
 }
 
-void CGrapic::SetTexture( /*int index, */CTexture* texture )
+void CGraphics::SetTexture( /*int index, */CTexture* texture )
 {
 	assert(texture);
 	mTextures = texture;
 }
 
-void CGrapic::SetLight( /*int index, */CLight* light )
+void CGraphics::SetLight( /*int index, */CLight* light )
 {
 	assert(light);
 	mLights = light;
 }
 
 const static float DARK_COLOR_FACTOR = 0.05f;
-void CGrapic::ProcessLight()
+void CGraphics::ProcessLight()
 {
 	CLight* pLight = mLights;
 	if(pLight != NULL && pLight->m_bEnable)
@@ -234,14 +234,24 @@ void CGrapic::ProcessLight()
 				CFace& face = mFaces[i];
 				if(!face.isCulled)
 				{
+					Vector4 pos0 = mVertexs[face.mVertIndex[0]].mVertex;
+					Vector4 normal0 = mVertexs[face.mVertIndex[0]].mNormal;
+					face.mColor[0] = PhongCal(pLight, mLightPositionView, pos0, normal0);
 
+					Vector4 pos1 = mVertexs[face.mVertIndex[1]].mVertex;
+					Vector4 normal1 = mVertexs[face.mVertIndex[1]].mNormal;
+					face.mColor[1] = PhongCal(pLight, mLightPositionView, pos1, normal1);
+
+					Vector4 pos2 = mVertexs[face.mVertIndex[2]].mVertex;
+					Vector4 normal2 = mVertexs[face.mVertIndex[2]].mNormal;
+					face.mColor[2] = PhongCal(pLight, mLightPositionView, pos2, normal2);
 				}
 			}
 		}
 	}
 }
 
-void CGrapic::SetFace( CFace* faces, int faceNum )
+void CGraphics::SetFace( CFace* faces, int faceNum )
 {
 	if (mFaceNum != faceNum)
 	{
@@ -253,3 +263,57 @@ void CGrapic::SetFace( CFace* faces, int faceNum )
 	mFaceNum += faceNum;
 }
 
+CE::Core::CColor CGraphics::PhongCal( CLight* pLight, const Vector4& lightPos, const Vector4& vertexPosView, const Vector4& normal )
+{
+	if(!pLight)
+		return CColor(255, 255, 255);
+
+	// 必须标准化
+	Vector4 n = normal.Nomalize();
+	// 顶点到光源的向量
+	Vector4 l = (lightPos - vertexPosView).Nomalize();
+	// 顶点到观察点向量(相机位于原点)
+	Vector4 v = (Vector4(0,0,0,0) - vertexPosView).Nomalize();
+	// 反射光向量，参看笔记
+	Vector4 r = (n * ( 2 * Max(l.DotVector(n), 0)) - l).Nomalize();
+
+	// phone模型计算公式
+	CColor diffuse = pLight->m_dDiffuse * (pLight->m_fKDiffuse * Max(l.DotVector(n), DARK_COLOR_FACTOR));
+	CColor respec = pLight->m_dSpecular * (pLight->m_fKSpecular * pow(Max(v.DotVector(r), 0), pLight->m_fShininess));
+
+	return diffuse + respec;
+}
+
+void CGraphics::ProcessRasterize()
+{
+	// 光栅化
+
+}
+
+void CGraphics::DrawPrimitives()
+{
+	BuildMatrix();
+
+	TranslateToViewSpace();
+
+	ProcessLight();
+
+	TranslateToProjectiveSpace();
+
+	ProcessRasterize();
+}
+
+void	CGraphics::ClearBuffer(const CColor& c)
+{
+	::FillRect(mBufferedHDC, &mBufferSize, mBgBrush);
+	// 重置深度缓存
+	// 注 : 这里memset只能对Int类型的数组进行初始化, 所以这里直接使用了Int类型
+	// 而没有使用float类型, 应该使用float
+	::memset(mZBuffer, 0, sizeof(float) * SCREEN_WIDTH * SCREEN_HEIGHT);
+}
+
+void CGraphics::FlipBuffer(HDC hdc)
+{
+	// 将已经绘制好的缓冲区递交给Graphics在屏幕上绘制, 并将当前缓冲区设置为另一个缓冲区
+	::BitBlt(hdc,0,0,SCREEN_WIDTH,SCREEN_HEIGHT,mBufferedHDC,0,0,SRCCOPY);
+}

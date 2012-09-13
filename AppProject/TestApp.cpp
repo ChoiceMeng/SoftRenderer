@@ -1,5 +1,5 @@
 #include <Windows.h>
-#include "Vector2.h"
+#include "WindowBase.h"
 
 int WINAPI WinMain(
 	HINSTANCE hInstance,      // handle to current instance
@@ -8,6 +8,7 @@ int WINAPI WinMain(
 	int nCmdShow              // show state
 	)
 {
-	CE::Math::Vector2 vet;
-	vet.x = 1;
+	CWindowBase::m_pMe = new CWindowBase("SoftRender", hInstance);
+	CWindowBase::m_pMe->ShowWindow();
+	CWindowBase::m_pMe->StartLoop();
 }

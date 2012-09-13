@@ -2,6 +2,7 @@
 #include "common.h"
 #include <Windows.h>
 
+class CGraphics;
 class CWindowBase
 {
 public:
@@ -21,6 +22,7 @@ public:
 
 	void UpdateWindow();
 
+	void ShowWindow();
 	// window事件处理
 	void StartLoop();
 
@@ -29,5 +31,7 @@ protected:
 	HWND					mHwnd;	// ::CreateWindow返回
 	std::string				mWindowTitle;
 	HINSTANCE				mHinstance;
+
+	CGraphics*				m_pGraphics;
 };
 

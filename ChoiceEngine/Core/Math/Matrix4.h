@@ -352,9 +352,9 @@ namespace CE
 			*/
 		};
 
-		extern "C"
+		//extern "C"
 
-		{
+		//{
 			// todo:此接口待重构移走
 			static Vector4 __stdcall Vec4MulMat4W(const Vector4& vec, const Matrix4& mat)
 			{
@@ -383,7 +383,7 @@ namespace CE
 				Matrix4 result(mat);
 				out = result.Inverse();
 			}
-		}
+		//}
 	}
 }
 

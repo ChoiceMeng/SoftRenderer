@@ -1,16 +1,34 @@
 #include "WindowBase.h"
 #include "Windowsx.h"
 #include <ctime>
+#include "Graphics.h"
+#include "common.h"
 
 CWindowBase* CWindowBase::m_pMe;
 CWindowBase::CWindowBase(const std::string szWindowName, HINSTANCE hInstance):
 mWindowTitle(szWindowName), mHinstance(hInstance)
 {
+	if (!(registerWindow() && createWindow()))
+	{
+		throw "Init Window Failed!";
+	}
+
+	m_pGraphics = new CGraphics;
+	m_pGraphics->InitGDI(mHinstance);
+
+	OnUpdate();
+
+	UpdateWindow();
 }
 
 
 CWindowBase::~CWindowBase(void)
 {
+	m_pGraphics->ShutdownGraphicss();
+
+
+
+	DestroyWindow(mHwnd);
 }
 
 bool CWindowBase::createWindow()
@@ -226,10 +244,9 @@ void CWindowBase::OnKeyDown(int msg)
 // 窗口绘制函数
 void CWindowBase::OnPaint(HDC hdc)
 {
-	OnUpdate();
-	/*
-	mGraphics->ClearBuffer();
-	{
+
+	m_pGraphics->ClearBuffer();
+	/*{
 		//----Begin Object 1----
 		FMatrix44 mat;
 		static long t = 90;
@@ -238,27 +255,56 @@ void CWindowBase::OnPaint(HDC hdc)
 			t += 2;
 
 		RotateMatrix44Y(mat, t);
-		mGraphics->SetTransform(TS_LOCAL, mat);
+		mGraphicss->SetTransform(TS_LOCAL, mat);
 		TranslateMatrix44(mat, 0, 0, 0);
-		mGraphics->SetTransform(TS_WORLD, mat);
+		mGraphicss->SetTransform(TS_WORLD, mat);
 
 		// 提交并绘制
-		mGraphics->SetVertex(mObject_Drawing->mVerts, mObject_Drawing->mNumOfVerts);
-		mGraphics->SetFace(mObject_Drawing->mFaces, mObject_Drawing->mNumOfFaces);
-		mGraphics->DrawPrimitives();
+		mGraphicss->SetVertex(mObject_Drawing->mVerts, mObject_Drawing->mNumOfVerts);
+		mGraphicss->SetFace(mObject_Drawing->mFaces, mObject_Drawing->mNumOfFaces);
+		mGraphicss->DrawPrimitives();
 		//----End Object 1-----
 
 		DrawInfos();
-	}
-	mGraphics->FlipBuffer(hdc);*/
+	}*/
+	m_pGraphics->FlipBuffer(hdc);
 }
 
 void CWindowBase::OnUpdate()
 {
+	// Graphics update
 
 }
 
 void CWindowBase::UpdateWindow()
 {
+	// 刷新窗口
+	::InvalidateRect (mHwnd, NULL, FALSE) ;
+	::UpdateWindow(mHwnd);
+}
 
+void CWindowBase::ShowWindow()
+{
+	::ShowWindow(mHwnd, SW_SHOW);
+	::UpdateWindow(mHwnd);
+}
+
+void CWindowBase::StartLoop()
+{
+	//进入消息循环
+	MSG msg;
+	ZeroMemory( &msg, sizeof(msg) );
+	while( msg.message!=WM_QUIT )
+	{
+		if( ::PeekMessage( &msg, NULL, 0U, 0U, PM_REMOVE ) )
+		{
+			::TranslateMessage( &msg );
+			::DispatchMessage( &msg );
+		}
+		else
+		{
+			OnUpdate();  //渲染图形
+			::Sleep(1);
+		}
+	}
 }

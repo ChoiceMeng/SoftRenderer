@@ -44,7 +44,7 @@ namespace CE
 				return Vector4(x + vec.x, y + vec.y, z + vec.z, w + vec.w);
 			}
 
-			inline Vector4 operator-(const Vector4& vec)
+			inline Vector4 operator-(const Vector4& vec) const
 			{
 				return Vector4(x - vec.x, y - vec.y, z - vec.z, w - vec.w);
 			}
@@ -138,7 +138,7 @@ namespace CE
 			}
 
 			// 向量的模
-			inline float Length()
+			inline float Length() const
 			{
 				return sqrt( x * x + y * y + z * z );
 			}
@@ -158,7 +158,7 @@ namespace CE
 				return Vector4(y * vec.z - z * vec.y, z * vec.x - x * vec.z, x * vec.y - y * vec.x, 1);
 			}
 
-			inline Vector4 Nomalize()
+			inline Vector4 Nomalize() const
 			{
 				float fLength = Length();
 
@@ -166,10 +166,7 @@ namespace CE
 				{
 					// 向量除以模
 					float fFactor = 1.0 / fLength;
-					x *= fFactor;
-					y *= fFactor;
-					z *= fFactor;
-					w = 1;
+					return Vector4(x * fFactor, y * fFactor, z * fFactor, 1);
 				}
 
 				return *this;
