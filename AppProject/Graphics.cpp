@@ -287,7 +287,31 @@ CE::Core::CColor CGraphics::PhongCal( CLight* pLight, const Vector4& lightPos, c
 void CGraphics::ProcessRasterize()
 {
 	// 光栅化
+	for (int i = 0; i < mFaceNum; i++)
+	{
+		CFace& face = mFaces[i];
+		if (!face.isCulled)
+		{
+			// face的顶点已经在TranslateToProjectiveSpace中变换到投影空间了
+			// 将位于透视坐标系下经过透视除法的顶点变换到屏幕坐标系
+			// 这里不对原始数据进行修改, 而是用他们的拷贝
+			Vector4 v0, v1, v2;
+			TranslateToScreenSpace(face, v0, v1, v2);
 
+			// normal已经在TanslateToViewSpace中变换到观察空间了
+			// 摄像机坐标系下面的顶点, for phong
+			Vector4 v0V = mVertexs[face.mVertIndex[0]].mVertexView;
+			Vector4 v1V = mVertexs[face.mVertIndex[1]].mVertexView;
+			Vector4 v2V = mVertexs[face.mVertIndex[2]].mVertexView;
+
+			// 摄像机坐标系下面的法线, for phong
+			Vector4 n0 = mVertexs[face.mVertIndex[0]].mNormal;
+			Vector4 n1 = mVertexs[face.mVertIndex[1]].mNormal;
+			Vector4 n2 = mVertexs[face.mVertIndex[2]].mNormal;
+
+
+		}
+	}
 }
 
 void CGraphics::DrawPrimitives()
