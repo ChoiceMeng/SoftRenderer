@@ -12,23 +12,23 @@ namespace CE
 		void MoveForward()
 		{
 			Vector3 step = m_LookAt - m_WorldPos;
-			step = step.Nomalize();
+			step = step.Normalize();
 			m_WorldPos += step; // ×óÊÖ×ø±êÏµ
 		}
 
 		void MoveBackward()
 		{
 			Vector3 step = m_LookAt - m_WorldPos;
-			m_WorldPos -= step.Nomalize();
+			m_WorldPos -= step.Normalize();
 		}
 		void MoveLeft()
 		{
-			Vector3 step = m_LookAt.CrossVector(m_Up).Nomalize();
+			Vector3 step = m_LookAt.CrossVector(m_Up).Normalize();
 			m_WorldPos -= step;
 		}
 		void MoveRight()
 		{
-			Vector3 step = m_LookAt.CrossVector(m_Up).Nomalize();
+			Vector3 step = m_LookAt.CrossVector(m_Up).Normalize();
 			m_WorldPos += step;
 		}
 		void Pitch();

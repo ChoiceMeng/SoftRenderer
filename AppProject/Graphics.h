@@ -59,8 +59,16 @@ public:
 	// 光栅化
  	void	ProcessRasterize();
 	// 光栅化函数
-
+	void RasterizeFace(int faceIndex,
+		Vector4& v0, Vector4& v1, Vector4& v2, 
+		Vector4& v0V, Vector4& v1V, Vector4& v2V,
+		Vector4& n0,  Vector4& n1, Vector4& n2,
+		Vector4& uv0, Vector4& uv1, Vector4& uv2,
+		CColor& c0, CColor& c1, CColor& c2);
 	//////////////////////////////////////////////////////////////////////////
+
+	// void SwapVectex(	Vector4& v0, Vector4& v0V, Vector4& n0, Vector4& uv0, CColor& c0, 
+	//	Vector4& v1, Vector4& v1V, Vector4& n1, Vector4& uv1, CColor& c1);
 
 	// 清空当前缓冲区, 并将其颜色设置为黑色
 	void	ClearBuffer(const CColor &c = CColor(0, 0, 255));

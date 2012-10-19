@@ -161,7 +161,7 @@ namespace CE
 				return Vector3(y * vec.z - z * vec.y, z * vec.x - x * vec.z, x * vec.y - y * vec.x);
 			}
 
-			inline Vector3 Nomalize()
+			inline Vector3 Normalize()
 			{
 				float fLength = Length();
 

@@ -268,9 +268,9 @@ namespace CE
 			{
 				// note:等号右边必须为常数
 				// Vector3 temp = at-eye;
-				Vector3 z = (at-eye).Nomalize();
- 				Vector3 x = up.CrossVector(z).Nomalize();
- 				Vector3 y = z.CrossVector(x).Nomalize();
+				Vector3 z = (at-eye).Normalize();
+ 				Vector3 x = up.CrossVector(z).Normalize();
+ 				Vector3 y = z.CrossVector(x).Normalize();
  
  				mat.m_fValue[0][0] = x.x,				mat.m_fValue[0][1] = y.x,				mat.m_fValue[0][2] = z.x,				mat.m_fValue[0][3] = 0;
  				mat.m_fValue[1][0] = x.y,				mat.m_fValue[1][1] = y.y,				mat.m_fValue[1][2] = z.y,				mat.m_fValue[1][3] = 0;

@@ -284,6 +284,28 @@ CE::Core::CColor CGraphics::PhongCal( CLight* pLight, const Vector4& lightPos, c
 	return diffuse + respec;
 }
 
+void SwapVectex(	Vector4& v0, Vector4& v0V, Vector4& n0, Vector4& uv0, CColor& c0, 
+	Vector4& v1, Vector4& v1V, Vector4& n1, Vector4& uv1, CColor& c1)
+{
+	std::swap(v0, v1);
+	std::swap(uv0, uv1);
+	std::swap(c0, c1);
+	std::swap(v0V, v1V);
+	std::swap(n0, n1);
+}
+
+bool IsInScreen(const Vector4& v0, const Vector4& v1, const Vector4& v2, int screenWidth, int screenHeight)
+{
+	if(v0.y > screenHeight || v2.y < 0)
+		return false;
+
+	int left = Min(v0.x, Min(v1.x, v2.x));
+	int right = Max(v0.x, Max(v1.x, v2.x));
+
+	if(left > screenWidth || right < 0)
+		return false;
+}
+
 void CGraphics::ProcessRasterize()
 {
 	// 光栅化
@@ -309,9 +331,34 @@ void CGraphics::ProcessRasterize()
 			Vector4 n1 = mVertexs[face.mVertIndex[1]].mNormal;
 			Vector4 n2 = mVertexs[face.mVertIndex[2]].mNormal;
 
+			Vector4 uv0 = mVertexs[face.mVertIndex[0]].mUv;
+			Vector4 uv1 = mVertexs[face.mVertIndex[1]].mUv;
+			Vector4 uv2 = mVertexs[face.mVertIndex[2]].mUv;
 
+			CColor c0 = face.mColor[0];
+			CColor c1 = face.mColor[1];
+			CColor c2 = face.mColor[2];
+
+			//RasterizeFace();
 		}
 	}
+}
+
+// 光栅化三角面
+void CGraphics::RasterizeFace(int faceIndex,
+	Vector4& v0, Vector4& v1, Vector4& v2, 
+	Vector4& v0V, Vector4& v1V, Vector4& v2V,
+	Vector4& n0,  Vector4& n1, Vector4& n2,
+	Vector4& uv0, Vector4& uv1, Vector4& uv2,
+	CColor& c0, CColor& c1, CColor& c2)
+{
+	// 保证Y坐标上V0<V1<V2的顺序，再区分左三角形还是右三角形
+	if(v0.y > v1.y) SwapVectex(v0, v0V, n0, uv0, c0, v1, v1V, n1, uv1, c1);
+	if(v0.y > v2.y) SwapVectex(v0, v0V, n0, uv0, c0, v2, v2V, n2, uv2, c2);
+	if(v1.y > v2.y) SwapVectex(v1, v1V, n1, uv1, c1, v2, v2V, n2, uv2, c2);
+
+	if(!IsInScreen(v0, v1, v2, SCREEN_WIDTH, SCREEN_HEIGHT))
+		return;
 }
 
 void CGraphics::DrawPrimitives()
