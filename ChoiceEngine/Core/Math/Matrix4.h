@@ -325,7 +325,7 @@ namespace CE
 			screen_x = alpha * ( 1 + 1 ) = alpha * 2 = screen_width - 0.5
 			非常正确 ！！ x 从 [ -1, 1 ) 的区间正确地映射到了屏幕的 [ 0, screen_width ) 区间 ！！
 			*/
-			static void ScreenMatrix(Matrix4& mat, int width, int height)
+			static void ScreenMatrix(Matrix4& mat, int width, int height) // 与此矩阵做乘法的顶点的x,y在[-1, 1]区间
 			{
 				int alpha = 0.5*width;
 				int beta = 0.5*height;

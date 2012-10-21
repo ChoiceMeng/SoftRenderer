@@ -339,7 +339,7 @@ void CGraphics::ProcessRasterize()
 			CColor c1 = face.mColor[1];
 			CColor c2 = face.mColor[2];
 
-			//RasterizeFace();
+			RasterizeFace(i, v0, v1, v2, v0V, v1V, v2V, n0, n1, n2, uv0, uv1, uv2, c0, c1, c2);
 		}
 	}
 }
@@ -359,6 +359,40 @@ void CGraphics::RasterizeFace(int faceIndex,
 
 	if(!IsInScreen(v0, v1, v2, SCREEN_WIDTH, SCREEN_HEIGHT))
 		return;
+
+	// 由斜率公式得出，在一条直线上的三点:v0,v1,v2 有:(v1.y-v0.y)/(v1.x-v0.x) = (v2.y-v0.y)/（v2.x-v0.x)
+	Vector3 vNew1;
+	vNew1.x = (v1.y-v0.y)/(v2.y-v0.y)*(v2.x-v0.x)+v0.x;
+	vNew1.y = v1.y;
+	// z也满足斜率公式，但是在投影空间中z只按照1/z线性变化
+	vNew1.z = 1 / ( (1/v1.z-1/v0.z)/(1/v2.z-1/v0.z)*(1/v2.z-1/v0.z) + 1/v0.z );
+
+	// 提取斜率公式中公有部分
+	float factor = (v1.y-v0.y)/(v2.y-v0.y);
+	float vNew1Z = (1/v1.z-1/v0.z)/(1/v2.z-1/v0.z)*(1/v2.z-1/v0.z) + 1/v0.z;
+
+	// 新顶点的normal和uv也需要重新计算
+	Vector4 new1Normal = (n2  / v2.z - n0  / v0.z)	* factor + n0  / v0.z;
+	// view坐标系坐标
+	Vector4 newvV		= (v2V / v2.z - v0V / v0.z) * factor + v0V / v0.z;
+
+	float u = (uv2.x  / v2.z - uv0.x / v0.z ) * factor + uv0.x / v0.z;	
+	float v = (uv2.y  / v2.z - uv0.y / v0.z ) * factor + uv0.y / v0.z;
+
+	// 透视除法
+	new1Normal	/= vNew1Z;
+	newvV		/= vNew1Z;
+	u			/= vNew1Z;
+	v			/= vNew1Z;
+
+	float r = (c2.r - c0.r) * factor + c0.r;
+	float g = (c2.g - c0.g) * factor + c0.g;
+	float b = (c2.b - c0.b) * factor + c0.b;
+
+	CColor color;
+	color.r = (unsigned char)r;
+	color.g = (unsigned char)g;
+	color.b = (unsigned char)b;
 }
 
 void CGraphics::DrawPrimitives()
