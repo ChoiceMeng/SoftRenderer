@@ -393,6 +393,47 @@ void CGraphics::RasterizeFace(int faceIndex,
 	color.r = (unsigned char)r;
 	color.g = (unsigned char)g;
 	color.b = (unsigned char)b;
+
+	if(vNew1.x > v1.x)
+	{
+		// 左三角形
+		//				/| v0
+		//			   / |
+		//			  /	 | 
+		//		v1	 ----- vNew1
+
+		//      v1	------ vNew1
+		//			\	 |  
+		//			 \   | 
+		//			  \	 |
+		//			   \ |
+		//				\|	
+		//			     v2
+		if(mShadeType == SHADE_FLAT)
+		{
+		  
+		}
+	}
+	else
+	{
+		// 右三角形
+		//			 v0
+		//			 |\	 
+		//			 | \  
+		//			 |  \	  
+		//		v1	 ----- vNew1
+
+		//      v1	 ----- vNew1
+		//			 |   /
+		//			 |  / 
+		//			 | /
+		//			 |/
+		//			 v2
+		if(mShadeType == SHADE_FLAT)
+		{
+
+		}
+	}
 }
 
 void CGraphics::DrawPrimitives()
