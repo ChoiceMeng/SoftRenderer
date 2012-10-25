@@ -362,10 +362,10 @@ void CGraphics::RasterizeFace(int faceIndex,
 
 	// 由斜率公式得出，在一条直线上的三点:v0,v1,v2 有:(v1.y-v0.y)/(v1.x-v0.x) = (v2.y-v0.y)/（v2.x-v0.x)
 	Vector3 vNew1;
-	vNew1.x = (v1.y-v0.y)/(v2.y-v0.y)*(v2.x-v0.x)+v0.x;
+	vNew1.x = (v2.x-v0.x)*(v1.y-v0.y)/(v2.y-v0.y)+v0.x;
 	vNew1.y = v1.y;
-	// z也满足斜率公式，但是在投影空间中z只按照1/z线性变化
-	vNew1.z = 1 / ( (1/v1.z-1/v0.z)/(1/v2.z-1/v0.z)*(1/v2.z-1/v0.z) + 1/v0.z );
+	// z也满足斜率公式
+	vNew1.z = (v2.z-v0.z)*(v1.y-v0.y)/(v2.y-v0.y)+v0.z;
 
 	// 提取斜率公式中公有部分
 	float factor = (v1.y-v0.y)/(v2.y-v0.y);
@@ -411,7 +411,9 @@ void CGraphics::RasterizeFace(int faceIndex,
 		//			     v2
 		if(mShadeType == SHADE_FLAT)
 		{
-		  
+			
+
+
 		}
 	}
 	else
@@ -434,6 +436,85 @@ void CGraphics::RasterizeFace(int faceIndex,
 
 		}
 	}
+}
+
+void CGraphics::RasterizeFace(const Vector4& v0, const Vector4& v1, const Vector4& v2, 
+	const Vector4& uv0, const Vector4& uv1, const Vector4& uv2,
+	const CColor& c0, const CColor& c1, const CColor& c2)
+{
+	CTexture* tex = mTextures;
+
+	// 线性插值
+	float xLDetal = (v1.x - v0.x) / (v1.y - v0.y); // Y加1x的增量
+	float xRDetal = (v2.x - v0.x) / (v2.y - v0.y);
+
+	float zLDetal = (1/v1.z - 1/v0.z) / (v1.y - v0.y); // z是按1/z线性变化的
+	float zRDetal = (1/v2.z - 1/v0.z) / (v1.y - v0.y);
+
+	float uLDetal = (uv1.x / v1.z - uv0.x / v0.z) / (v1.y - v0.y);
+	float uRDetal =  (uv2.x / v2.z - uv0.x / v0.z) / (v2.y - v0.y);
+
+	float vLDetal = (uv1.y / v1.z - uv0.y / v0.z) / (v1.y - v0.y);
+	float vRDetal =  (uv2.y / v2.z - uv0.y / v0.z) / (v2.y - v0.y);
+
+	for(float y = v0.y; y < v2.y; ++y)
+	{
+		// 避免浮点误差
+		y = (int)(y+0.5f); 
+
+		int xL, xR;
+		xL = (y - v0.y) * xLDetal + v0.x;
+		xR = (y - v0.y) * xRDetal + v0.x;
+
+		float zL, zR;
+		zL = (y - v0.y) * zLDetal + 1 / v0.z;
+		zR = (y - v0.y) * zRDetal + 1 / v0.z;
+
+		float zStep = (zR - zL) / (xR - xL);
+
+		// uv
+		float uL = (y - v0.y) * uLDetal + uv0.x / v0.z;
+		float vL = (y - v0.y) * vLDetal + uv0.y / v0.z;
+
+		float uR = (y - v0.y) * uRDetal + uv0.x / v0.z;
+		float vR = (y - v0.y) * vRDetal + uv0.y / v0.z;
+
+		float uStep = (uR - uL) / (xR - xL);
+		float vStep = (vR - vR) / (xR - xL);
+
+		float u = uL, v = vL;
+		CColor texC(255, 255, 255);
+
+		for(float x = xL, z = zL; x < xR; x++, z += zStep, u += uStep, v += vStep)
+		{
+			x = (int)(x + 0.5f);
+
+			// 先检查像素是否在屏幕内, 然后检查Zbuffer
+			if (x <0 || y < 0 || x > SCREEN_WIDTH || y > SCREEN_HEIGHT)
+				continue;
+			if (!CheckZ(x, y, z))
+				continue;
+
+			if(tex)
+			{
+				texC = tex->GetPixelUV(u / z, v / z);
+			}
+		}
+	}
+}
+
+bool CGraphics::CheckZ(int x, int y, float z)
+{
+	// 这里Z应该使用float类型来存储, 如果使用int类型, 那么会导致精度丢失
+	// 产生错误的现象
+	int index = y * SCREEN_WIDTH + x;
+	//float divZ = 1.0f / z;
+	// 这里是基于1/z做的比较
+	if (mZBuffer[index] > z) // 说明分母较大，则右手坐标系中较前
+		return false;
+
+	mZBuffer[index] = z;
+	return true;
 }
 
 void CGraphics::DrawPrimitives()

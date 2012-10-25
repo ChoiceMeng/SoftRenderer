@@ -65,6 +65,10 @@ public:
 		Vector4& n0,  Vector4& n1, Vector4& n2,
 		Vector4& uv0, Vector4& uv1, Vector4& uv2,
 		CColor& c0, CColor& c1, CColor& c2);
+
+	void RasterizeFace(const Vector4& v0, const Vector4& v1, const Vector4& v2, 
+		const Vector4& uv0, const Vector4& uv1, const Vector4& uv2,
+		const CColor& c0, const CColor& c1, const CColor& c2);
 	//////////////////////////////////////////////////////////////////////////
 
 	// void SwapVectex(	Vector4& v0, Vector4& v0V, Vector4& n0, Vector4& uv0, CColor& c0, 
@@ -77,6 +81,8 @@ public:
 
 	int		GetScreenWidth() const { return SCREEN_WIDTH; }
 	int		GetScreenHeight() const { return SCREEN_HEIGHT; }
+
+	bool		CheckZ(int x, int y, float z);
 private:
 	HBITMAP							mBufferedHandle;
 	HDC								mBufferedHDC;
@@ -107,7 +113,7 @@ private:
 
 	CLight*							mLights/*[MAX_LIGHT_NUM]*/;
 	Vector4							mLightPositionView;	// 光照位置, 摄像机坐标系下
-	CTexture*						mTextures/*[MAX_TEXTURE_NUM]*/;
+	CTexture*						mTextures/*[MAX_TEXTURE_NUM]*/; // 暂时一张纹理
 
 	ESHADE_Type						mShadeType;
 };
