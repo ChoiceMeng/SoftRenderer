@@ -3,6 +3,7 @@
 HINSTANCE GHInstance;
 CGraphics::CGraphics(void)
 {
+	mFillType = FILL_SOLID;
 }
 
 
@@ -361,7 +362,7 @@ void CGraphics::RasterizeFace(int faceIndex,
 		return;
 
 	// 由斜率公式得出，在一条直线上的三点:v0,v1,v2 有:(v1.y-v0.y)/(v1.x-v0.x) = (v2.y-v0.y)/（v2.x-v0.x)
-	Vector3 vNew1;
+	Vector4 vNew1;
 	vNew1.x = (v2.x-v0.x)*(v1.y-v0.y)/(v2.y-v0.y)+v0.x;
 	vNew1.y = v1.y;
 	// z也满足斜率公式
@@ -369,21 +370,14 @@ void CGraphics::RasterizeFace(int faceIndex,
 
 	// 提取斜率公式中公有部分
 	float factor = (v1.y-v0.y)/(v2.y-v0.y);
-	float vNew1Z = (1/v1.z-1/v0.z)/(1/v2.z-1/v0.z)*(1/v2.z-1/v0.z) + 1/v0.z;
 
 	// 新顶点的normal和uv也需要重新计算
-	Vector4 new1Normal = (n2  / v2.z - n0  / v0.z)	* factor + n0  / v0.z;
+	Vector4 new1Normal = (n2 - n0)	* factor + n0;
 	// view坐标系坐标
-	Vector4 newvV		= (v2V / v2.z - v0V / v0.z) * factor + v0V / v0.z;
+	Vector4 newvV		= (v2V - v0V) * factor + v0V;
 
-	float u = (uv2.x  / v2.z - uv0.x / v0.z ) * factor + uv0.x / v0.z;	
-	float v = (uv2.y  / v2.z - uv0.y / v0.z ) * factor + uv0.y / v0.z;
-
-	// 透视除法
-	new1Normal	/= vNew1Z;
-	newvV		/= vNew1Z;
-	u			/= vNew1Z;
-	v			/= vNew1Z;
+	float u = ( uv2.x - uv0.x ) * factor + uv0.x;	
+	float v = ( uv2.y - uv0.y ) * factor + uv0.y;
 
 	float r = (c2.r - c0.r) * factor + c0.r;
 	float g = (c2.g - c0.g) * factor + c0.g;
@@ -402,7 +396,7 @@ void CGraphics::RasterizeFace(int faceIndex,
 		//			  /	 | 
 		//		v1	 ----- vNew1
 
-		//      v1	------ vNew1
+		//      v1------ vNew1
 		//			\	 |  
 		//			 \   | 
 		//			  \	 |
@@ -411,9 +405,8 @@ void CGraphics::RasterizeFace(int faceIndex,
 		//			     v2
 		if(mShadeType == SHADE_FLAT)
 		{
-			
-
-
+			RasterizeFlatFaceUp(v0, v1, vNew1, uv0, uv1, Vector4(u, v, 0.0f, 0.0f), c0, c1, color);
+			RasterizeFlatFaceDown(v0, vNew1, v2,  uv0, Vector4(u, v, 0.0f, 0.0f), uv2, c1, color, c2);
 		}
 	}
 	else
@@ -423,9 +416,9 @@ void CGraphics::RasterizeFace(int faceIndex,
 		//			 |\	 
 		//			 | \  
 		//			 |  \	  
-		//		v1	 ----- vNew1
+		//	vNew1---v1
 
-		//      v1	 ----- vNew1
+		// vNew1---v1
 		//			 |   /
 		//			 |  / 
 		//			 | /
@@ -433,12 +426,17 @@ void CGraphics::RasterizeFace(int faceIndex,
 		//			 v2
 		if(mShadeType == SHADE_FLAT)
 		{
-
+			RasterizeFlatFaceUp(v0, vNew1, v1,  uv0, Vector4(u, v, 0.0f, 0.0f), uv1,  c0, color, c1 );
+			RasterizeFlatFaceDown(vNew1, v1,  v2,  Vector4(u, v, 0.0f, 0.0f), uv1,  uv2, color, c1, c2);
 		}
 	}
 }
 
-void CGraphics::RasterizeFace(const Vector4& v0, const Vector4& v1, const Vector4& v2, 
+//				/\ v0
+//			   /  \
+//			  /	   \
+//		v1	 --------	v2
+void CGraphics::RasterizeFlatFaceUp(const Vector4& v0, const Vector4& v1, const Vector4& v2, 
 	const Vector4& uv0, const Vector4& uv1, const Vector4& uv2,
 	const CColor& c0, const CColor& c1, const CColor& c2)
 {
@@ -499,6 +497,91 @@ void CGraphics::RasterizeFace(const Vector4& v0, const Vector4& v1, const Vector
 			{
 				texC = tex->GetPixelUV(u / z, v / z);
 			}
+
+			if(mFillType == FILL_WIREFRAME)
+			{
+				if(x > 0 && y > 0 && (x < xL + 1) || (x > xR - 1))
+					SetPixel(x, y, c0);	// 固定着色，都使用顶点颜色
+			}else{
+				SetPixel(x, y, c0*texC);
+			}
+		}
+	}
+}
+
+//		v0 --------	v1
+//			\    /
+//			 \  /
+//			  \/ v2
+void CGraphics::RasterizeFlatFaceDown(const Vector4& v0, const Vector4& v1, const Vector4& v2, 
+	const Vector4& uv0, const Vector4& uv1, const Vector4& uv2,
+	const CColor& c0, const CColor& c1, const CColor& c2)
+{
+	CTexture* tex = mTextures;
+
+	// 线性插值
+	float xLDetal = (v2.x - v0.x) / (v2.y - v0.y); // Y加1x的增量
+	float xRDetal = (v2.x - v1.x) / (v2.y - v1.y);
+
+	float zLDetal = (1/v2.z - 1/v0.z) / (v2.y - v0.y); // z是按1/z线性变化的
+	float zRDetal = (1/v2.z - 1/v1.z) / (v2.y - v1.y);
+
+	float uLDetal = (uv2.x / v2.z - uv0.x / v0.z) / (v2.y - v0.y);
+	float uRDetal =  (uv2.x / v2.z - uv0.x / v0.z) / (v2.y - v0.y);
+
+	float vLDetal = (uv2.y / v2.z - uv1.y / v0.z) / (v2.y - v1.y);
+	float vRDetal =  (uv2.y / v2.z - uv1.y / v0.z) / (v2.y - v1.y);
+
+	for(float y = v0.y; y < v2.y; ++y)
+	{
+		// 避免浮点误差
+		y = (int)(y+0.5f); 
+
+		int xL, xR;
+		xL = (y - v0.y) * xLDetal + v0.x;
+		xR = (y - v1.y) * xRDetal + v1.x;
+
+		float zL, zR;
+		zL = (y - v0.y) * zLDetal + 1 / v0.z;
+		zR = (y - v1.y) * zRDetal + 1 / v1.z;
+
+		float zStep = (zR - zL) / (xR - xL);
+
+		// uv
+		float uL = (y - v0.y) * uLDetal + uv0.x / v0.z;
+		float vL = (y - v0.y) * vLDetal + uv0.y / v0.z;
+
+		float uR = (y - v1.y) * uRDetal + uv1.x / v1.z;
+		float vR = (y - v1.y) * vRDetal + uv1.y / v1.z;
+
+		float uStep = (uR - uL) / (xR - xL);
+		float vStep = (vR - vR) / (xR - xL);
+
+		float u = uL, v = vL;
+		CColor texC(255, 255, 255);
+
+		for(float x = xL, z = zL; x < xR; x++, z += zStep, u += uStep, v += vStep)
+		{
+			x = (int)(x + 0.5f);
+
+			// 先检查像素是否在屏幕内, 然后检查Zbuffer
+			if (x <0 || y < 0 || x > SCREEN_WIDTH || y > SCREEN_HEIGHT)
+				continue;
+			if (!CheckZ(x, y, z))
+				continue;
+
+			if(tex)
+			{
+				texC = tex->GetPixelUV(u / z, v / z);
+			}
+
+			if(mFillType == FILL_WIREFRAME)
+			{
+				if(x > 0 && y > 0 && (x < xL + 1) || (x > xR - 1))
+					SetPixel(x, y, c0);	// 固定着色，都使用顶点颜色
+			}else{
+				SetPixel(x, y, c0*texC);
+			}
 		}
 	}
 }
@@ -543,4 +626,31 @@ void CGraphics::FlipBuffer(HDC hdc)
 {
 	// 将已经绘制好的缓冲区递交给Graphics在屏幕上绘制, 并将当前缓冲区设置为另一个缓冲区
 	::BitBlt(hdc,0,0,SCREEN_WIDTH,SCREEN_HEIGHT,mBufferedHDC,0,0,SRCCOPY);
+}
+
+void CGraphics::SetPixel( int x, int y, const CColor& c )
+{
+	// 这里本来应该计算z值,但是为了避免对Image像素的读取, 我将z检查分离了出来
+	// 所以, 在调用setPixel之前应该先检测checkZ, 返回true在调用setPixel
+	// ----------------------------------------------------------------
+	// 这里Z应该使用float类型来存储, 如果使用int类型, 那么会导致精度丢失
+	// 产生错误的现象
+	//int index = y * SCREEN_WIDTH + x;
+	//float divZ = 1.0f / z;
+	//// 这里是基于1/z做的比较
+	//if (GZBuffer[index] > divZ)
+	//	return;
+
+	//GZBuffer[index] = divZ;
+	//SetPixel(GBufferedHDC, x, y, RGB(c.r, c.g, c.b));
+
+	//each scan line in a bitmap has a width, a.k.a : pitch
+	//int pitch = GDIBSection.dsBm.bmWidthBytes;
+	BYTE* pSrcPix = mDatas + (mPitch * y);
+	pSrcPix += x * 4;
+	// blue green red alpha
+	pSrcPix[0] = c.b;
+	pSrcPix[1] = c.g;
+	pSrcPix[2] = c.r;
+	pSrcPix[3] = c.a;
 }

@@ -10,7 +10,20 @@ public:
 
 	inline std::string GetName() const { return mName; }
 	inline bool IsValid() const { return mValid;}
-	CColor GetPixel(int x, int y){static CColor defaultColor(255, 255, 255); return defaultColor;}
+	CColor GetPixel(int x, int y)
+	{
+		//COLORREF color = ::GetPixel(GBufferedHDC, x, y);
+		//return EColor(GetRValue(color), GetGValue(color), GetBValue(color));
+
+		//int pitch = GDIBSection.dsBm.bmWidthBytes;
+		//pointer that will advance in memory one pixel at a time...
+		unsigned char r= mPixels[mColorBit * ((y*mWidth) + x)];
+		unsigned char g= mPixels[mColorBit * ((y*mWidth) + x) +1 ];
+		unsigned char b= mPixels[mColorBit * ((y*mWidth) + x) + 2];
+
+		//return mPixels[y * mPitch + x];
+		return CColor(r, g, b);
+	}
 	CColor GetPixelUV(float u, float v)
 	{
 		static CColor defaultColor(255, 255, 255);
