@@ -812,6 +812,216 @@ void CGraphics::RasterizeGouraudFaceDown(const Vector4& v0, const Vector4& v1, c
 	}
 }
 
+//				/\ v0
+//			   /  \
+//			  /	   \
+//		v1	 --------	v2
+void CGraphics::RasterizePhongFaceUp(const Vector4& v0, const Vector4& v1, const Vector4& v2,
+	const Vector4& vV0, const Vector4& vV1, const Vector4& vV2,
+	const Vector4& uv0, const Vector4& uv1, const Vector4& uv2,
+	const CColor& c0, const CColor& c1, const CColor& c2)
+{
+	CTexture* tex = mTextures;
+
+	// 线性插值
+	float xLDetal = (v1.x - v0.x) / (v1.y - v0.y); // Y加1x的增量
+	float xRDetal = (v2.x - v0.x) / (v2.y - v0.y);
+
+	float zLDetal = (1/v1.z - 1/v0.z) / (v1.y - v0.y); // z是按1/z线性变化的
+	float zRDetal = (1/v2.z - 1/v0.z) / (v1.y - v0.y);
+
+	float uLDetal = (uv1.x / v1.z - uv0.x / v0.z) / (v1.y - v0.y);
+	float uRDetal =  (uv2.x / v2.z - uv0.x / v0.z) / (v2.y - v0.y);
+
+	float vLDetal = (uv1.y / v1.z - uv0.y / v0.z) / (v1.y - v0.y);
+	float vRDetal =  (uv2.y / v2.z - uv0.y / v0.z) / (v2.y - v0.y);
+
+	// 法线detal
+	Vector4 nLDetal = (n1/* / v1.z*/ - n0/* / v0.z*/) / (v1.y - v0.y);
+	Vector4 nRDetal = (n2/* / v1.z*/ - n0/* / v0.z*/) / (v2.y - v0.y);
+
+	Vector4 vVLDetal = (n1/* / v1.z*/ - n0/* / v0.z*/) / (v1.y - v0.y);
+	Vector4 vVRDetal = (n2/* / v1.z*/ - n0/* / v0.z*/) / (v2.y - v0.y);
+
+
+
+	for(float y = v0.y; y < v2.y; ++y)
+	{
+		// 避免浮点误差
+		y = (int)(y+0.5f); 
+
+		int xL, xR;
+		xL = (y - v0.y) * xLDetal + v0.x;
+		xR = (y - v0.y) * xRDetal + v0.x;
+
+		float zL, zR;
+		zL = (y - v0.y) * zLDetal + 1 / v0.z;
+		zR = (y - v0.y) * zRDetal + 1 / v0.z;
+
+		int divWidth = EqualFloat(xL - xR, 0.0) ? 1.0 : 1/(xL - xR); // 避免分母为零
+		float zStep = (zR - zL) / divWidth;
+
+		// uv
+		float uL = (y - v0.y) * uLDetal + uv0.x / v0.z;
+		float vL = (y - v0.y) * vLDetal + uv0.y / v0.z;
+
+		float uR = (y - v0.y) * uRDetal + uv0.x / v0.z;
+		float vR = (y - v0.y) * vRDetal + uv0.y / v0.z;
+
+		float uStep = (uR - uL) / divWidth;
+		float vStep = (vR - vR) / divWidth;
+
+		float u = uL, v = vL;
+		CColor texC(255, 255, 255);
+
+		float r = crL, g = cgL, b = cbL;
+		for(float x = xL, z = zL; x < xR; x++, z += zStep, u += uStep, v += vStep)
+		{
+			x = (int)(x + 0.5f);
+
+			r = crL + (x - xL)*colorRStep;
+			g = cgL + (x - xL)*colorGStep;
+			b = cbL + (x - xL)*colorBStep;
+
+			// 避免溢出
+			r = Clamp(r, 0.0f, 255.0f);
+			g = Clamp(g, 0.0f, 255.0f);
+			b = Clamp(b, 0.0f, 255.0f);
+
+			// 先检查像素是否在屏幕内, 然后检查Zbuffer
+			if (x <0 || y < 0 || x > SCREEN_WIDTH || y > SCREEN_HEIGHT)
+				continue;
+			if (!CheckZ(x, y, z))
+				continue;
+
+			if(tex)
+			{
+				texC = tex->GetPixelUV(u / z, v / z);
+			}
+
+			if(mFillType == FILL_WIREFRAME)
+			{
+				if(x > 0 && y > 0 && (x < xL + 1) || (x > xR - 1))
+					SetPixel(x, y, CColor(r, g, b));	// 固定着色，都使用顶点颜色
+			}else{
+				SetPixel(x, y, CColor(r, g, b)*texC);
+			}
+		}
+	}
+}
+
+//		v0 --------	v1
+//			\    /
+//			 \  /
+//			  \/ v2
+void CGraphics::RasterizeGouraudFaceDown(const Vector4& v0, const Vector4& v1, const Vector4& v2, 
+	const Vector4& uv0, const Vector4& uv1, const Vector4& uv2,
+	const CColor& c0, const CColor& c1, const CColor& c2)
+{
+	CTexture* tex = mTextures;
+
+	// 线性插值
+	float xLDetal = (v2.x - v0.x) / (v2.y - v0.y); // Y加1x的增量
+	float xRDetal = (v2.x - v1.x) / (v2.y - v1.y);
+
+	float zLDetal = (1/v2.z - 1/v0.z) / (v2.y - v0.y); // z是按1/z线性变化的
+	float zRDetal = (1/v2.z - 1/v1.z) / (v2.y - v1.y);
+
+	float uLDetal = (uv2.x / v2.z - uv0.x / v0.z) / (v2.y - v0.y);
+	float uRDetal =  (uv2.x / v2.z - uv0.x / v0.z) / (v2.y - v0.y);
+
+	float vLDetal = (uv2.y / v2.z - uv1.y / v0.z) / (v2.y - v1.y);
+	float vRDetal =  (uv2.y / v2.z - uv1.y / v0.z) / (v2.y - v1.y);
+
+	// Y方向对颜色的插值
+	float rLDetal = (c2.r - c0.r) / (v2.y - v0.y);
+	float rRDetal = (c2.r - c1.r) / (v2.y - v1.y);
+
+	float gLDetal = (c2.g - c0.g) / (v1.y - v0.y);
+	float gRDetal = (c2.g - c1.g) / (v2.y - v1.y);
+
+	float bLDetal = (c2.b - c0.b) / (v1.y - v0.y);
+	float bRDetal = (c2.b - c1.b) / (v2.y - v1.y);
+
+	for(float y = v0.y; y < v2.y; ++y)
+	{
+		// 避免浮点误差
+		y = (int)(y+0.5f); 
+
+		int xL, xR;
+		xL = (y - v0.y) * xLDetal + v0.x;
+		xR = (y - v1.y) * xRDetal + v1.x;
+
+		float zL, zR;
+		zL = (y - v0.y) * zLDetal + 1 / v0.z;
+		zR = (y - v1.y) * zRDetal + 1 / v1.z;
+
+		int divWidth = EqualFloat(xL - xR, 0.0) ? 1.0 : 1/(xL - xR); // 避免分母为零
+		float zStep = (zR - zL) / divWidth;
+
+		// x方向color插值
+		unsigned char crL = (y - v0.y) * rLDetal + c0.r;
+		unsigned char crR = (y - v1.y) * rLDetal + c1.r;
+
+		unsigned char cgL = (y - v0.y) * gLDetal + c0.g;
+		unsigned char cgR = (y - v1.y) * gRDetal + c1.g;
+
+		unsigned char cbL = (y - v0.y) * bLDetal + c0.b;
+		unsigned char cbR = (y - v1.y) * bRDetal + c1.b;
+
+		float colorRStep = (crR - crL) * divWidth;
+		float colorGStep = (cgR - cgL) * divWidth;
+		float colorBStep = (cbR - cbL) * divWidth;
+
+		// uv
+		float uL = (y - v0.y) * uLDetal + uv0.x / v0.z;
+		float vL = (y - v0.y) * vLDetal + uv0.y / v0.z;
+
+		float uR = (y - v1.y) * uRDetal + uv1.x / v1.z;
+		float vR = (y - v1.y) * vRDetal + uv1.y / v1.z;
+
+		float uStep = (uR - uL) / divWidth;
+		float vStep = (vR - vR) / divWidth;
+
+		float u = uL, v = vL;
+		CColor texC(255, 255, 255);
+
+		float r = crL, g = cgL, b = cbL;
+		for(float x = xL, z = zL; x < xR; x++, z += zStep, u += uStep, v += vStep)
+		{
+			x = (int)(x + 0.5f);
+
+			r = crL + (x - xL)*colorRStep;
+			g = cgL + (x - xL)*colorGStep;
+			b = cbL + (x - xL)*colorBStep;
+
+			// 避免溢出
+			r = Clamp(r, 0.0f, 255.0f);
+			g = Clamp(g, 0.0f, 255.0f);
+			b = Clamp(b, 0.0f, 255.0f);
+
+			// 先检查像素是否在屏幕内, 然后检查Zbuffer
+			if (x <0 || y < 0 || x > SCREEN_WIDTH || y > SCREEN_HEIGHT)
+				continue;
+			if (!CheckZ(x, y, z))
+				continue;
+
+			if(tex)
+			{
+				texC = tex->GetPixelUV(u / z, v / z);
+			}
+
+			if(mFillType == FILL_WIREFRAME)
+			{
+				if(x > 0 && y > 0 && (x < xL + 1) || (x > xR - 1))
+					SetPixel(x, y, CColor(r, g, b));	// 固定着色，都使用顶点颜色
+			}else{
+				SetPixel(x, y, CColor(r, g, b)*texC);
+			}
+		}
+	}
+}
+
 bool CGraphics::CheckZ(int x, int y, float z)
 {
 	// 这里Z应该使用float类型来存储, 如果使用int类型, 那么会导致精度丢失

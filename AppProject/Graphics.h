@@ -83,13 +83,19 @@ public:
 		const Vector4& uv0, const Vector4& uv1, const Vector4& uv2,
 		const CColor& c0, const CColor& c1, const CColor& c2);
 
-	void CGraphics::RasterizeGouraudFaceUp(const Vector4& v0, const Vector4& v1, const Vector4& v2, 
+	void RasterizeGouraudFaceUp(const Vector4& v0, const Vector4& v1, const Vector4& v2, 
 		const Vector4& uv0, const Vector4& uv1, const Vector4& uv2,
 		const CColor& c0, const CColor& c1, const CColor& c2);
 	void RasterizeGouraudFaceDown(const Vector4& v0, const Vector4& v1, const Vector4& v2, 
 		const Vector4& uv0, const Vector4& uv1, const Vector4& uv2,
 		const CColor& c0, const CColor& c1, const CColor& c2);
 
+	void RasterizePhongFaceUp(const Vector4& v0, const Vector4& v1, const Vector4& v2, 
+		const Vector4& uv0, const Vector4& uv1, const Vector4& uv2,
+		const CColor& c0, const CColor& c1, const CColor& c2);
+	void RasterizePhongFaceDown(const Vector4& v0, const Vector4& v1, const Vector4& v2, 
+		const Vector4& uv0, const Vector4& uv1, const Vector4& uv2,
+		const CColor& c0, const CColor& c1, const CColor& c2);
 	void SetPixel(int x, int y, const CColor& color);
 	//////////////////////////////////////////////////////////////////////////
 
