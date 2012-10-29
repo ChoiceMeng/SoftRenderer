@@ -692,9 +692,9 @@ void CGraphics::RasterizeGouraudFaceUp(const Vector4& v0, const Vector4& v1, con
 			if(mFillType == FILL_WIREFRAME)
 			{
 				if(x > 0 && y > 0 && (x < xL + 1) || (x > xR - 1))
-					SetPixel(x, y, CColor(r, g, b));	// 固定着色，都使用顶点颜色
+					SetPixel(x, y, CColor(r, g, b));
 			}else{
-				SetPixel(x, y, CColor(r, g, b)*texC);
+				SetPixel(x, y, CColor(r, g, b)*texC); // 使用插值颜色填充
 			}
 		}
 	}
@@ -804,12 +804,342 @@ void CGraphics::RasterizeGouraudFaceDown(const Vector4& v0, const Vector4& v1, c
 			if(mFillType == FILL_WIREFRAME)
 			{
 				if(x > 0 && y > 0 && (x < xL + 1) || (x > xR - 1))
-					SetPixel(x, y, CColor(r, g, b));	// 固定着色，都使用顶点颜色
+					SetPixel(x, y, CColor(r, g, b));
 			}else{
-				SetPixel(x, y, CColor(r, g, b)*texC);
+				SetPixel(x, y, CColor(r, g, b)*texC);	// 使用插值颜色填充
 			}
 		}
 	}
+}
+
+//				/\ v0
+//			   /  \
+//			  /	   \
+//		v1	 --------	v2
+void CGraphics::RasterizePhongFaceUp(const Vector4& v0, const Vector4& v1, const Vector4& v2,
+	const Vector4& vV0, const Vector4& vV1, const Vector4& vV2,
+	const Vector4& n0, const Vector4& n1, const Vector4& n2,
+	const Vector4& uv0, const Vector4& uv1, const Vector4& uv2,
+	const CColor& c0, const CColor& c1, const CColor& c2)
+{
+	CTexture* tex = mTextures;
+
+	// 线性插值
+	float xLDetal = (v1.x - v0.x) / (v1.y - v0.y); // Y加1x的增量
+	float xRDetal = (v2.x - v0.x) / (v2.y - v0.y);
+
+	float zLDetal = (1/v1.z - 1/v0.z) / (v1.y - v0.y); // z是按1/z线性变化的
+	float zRDetal = (1/v2.z - 1/v0.z) / (v1.y - v0.y);
+
+	float uLDetal = (uv1.x / v1.z - uv0.x / v0.z) / (v1.y - v0.y);
+	float uRDetal =  (uv2.x / v2.z - uv0.x / v0.z) / (v2.y - v0.y);
+
+	float vLDetal = (uv1.y / v1.z - uv0.y / v0.z) / (v1.y - v0.y);
+	float vRDetal =  (uv2.y / v2.z - uv0.y / v0.z) / (v2.y - v0.y);
+
+	// 法线插值
+	Vector4 nLDetal = (n1 - n0) / (v1.y - v0.y);
+	Vector4 nRDetal = (n2 - n0) / (v1.y - v0.y);
+
+	// 观察坐标系坐标插值
+	Vector4 vVLDetal = (vV1 - vV0) / (v1.y - v0.y);
+	Vector4 vVRDetal = (vV2 - vV0) / (v1.y - v0.y);
+
+	// 计算切线空间矩阵
+	Matrix4 TBN;
+	if (mNormalTexture != NULL)
+		FindTBN(vV0, vV1, vV2, uv0, uv1, uv2, TBN);
+
+	for(float y = v0.y; y < v2.y; ++y)
+	{
+		// 避免浮点误差
+		y = (int)(y+0.5f); 
+
+		int xL, xR;
+		xL = (y - v0.y) * xLDetal + v0.x;
+		xR = (y - v0.y) * xRDetal + v0.x;
+
+		float zL, zR;
+		zL = (y - v0.y) * zLDetal + 1 / v0.z;
+		zR = (y - v0.y) * zRDetal + 1 / v0.z;
+
+		int divWidth = EqualFloat(xL - xR, 0.0) ? 1.0 : 1/(xL - xR); // 避免分母为零
+		float zStep = (zR - zL) / divWidth;
+
+		// uv
+		float uL = (y - v0.y) * uLDetal + uv0.x / v0.z;
+		float vL = (y - v0.y) * vLDetal + uv0.y / v0.z;
+
+		float uR = (y - v0.y) * uRDetal + uv0.x / v0.z;
+		float vR = (y - v0.y) * vRDetal + uv0.y / v0.z;
+
+		float uStep = (uR - uL) / divWidth;
+		float vStep = (vR - vR) / divWidth;
+
+		float u = uL, v = vL;
+		CColor texC(255, 255, 255);
+
+		// phong相关参数计算
+		Vector4 normalL = nLDetal * (y - v0.y) + n0;
+		Vector4 normalR = nRDetal * (y - v0.y) + n0;
+		Vector4 normalStep = (normalR - normalL) * divWidth;
+		Vector4 n = normalL;
+
+		Vector4 vViewL = vVLDetal * (y - v0.y) + vV0;
+		Vector4 vViewR = vVRDetal * (y - v0.y) + vV0;
+		Vector4 vViewStep = (vViewR - vViewL) * divWidth;
+		Vector4 vV = vViewL;
+
+		CColor c(255, 255, 255);
+		for(float x = xL, z = zL; x < xR; x++, z += zStep, u += uStep, v += vStep, n += normalStep, vV += vViewStep)
+		{
+			x = (int)(x + 0.5f);
+
+			// 先检查像素是否在屏幕内, 然后检查Zbuffer
+			if (x <0 || y < 0 || x > SCREEN_WIDTH || y > SCREEN_HEIGHT)
+				continue;
+			if (!CheckZ(x, y, z))
+				continue;
+
+			if(tex)
+			{
+				texC = tex->GetPixelUV(u / z, v / z);
+			}
+
+			// phong逐像素计算光照
+			if(mNormalTexture)
+			{
+				CColor bumpColor = CalNormallMapNormal(mNormalTexture, mLights, mLightPositionView, TBN, vV, u, v);
+				c = PhongCal(mLights, mLightPositionView, vV / z, n / z) * bumpColor;
+			}else
+			{
+				c = PhongCal(mLights, mLightPositionView, vV / z, n / z);
+			}
+
+			if(mFillType == FILL_WIREFRAME)
+			{
+				if(x > 0 && y > 0 && (x < xL + 1) || (x > xR - 1))
+					SetPixel(x, y, c);
+			}else{
+				SetPixel(x, y, c*texC);
+			}
+		}
+	}
+}
+
+//		v0 --------	v1
+//			\    /
+//			 \  /
+//			  \/ v2
+void CGraphics::RasterizePhongFaceDown(const Vector4& v0, const Vector4& v1, const Vector4& v2,
+	const Vector4& vV0, const Vector4& vV1, const Vector4& vV2,
+	const Vector4& n0, const Vector4& n1, const Vector4& n2,
+	const Vector4& uv0, const Vector4& uv1, const Vector4& uv2,
+	const CColor& c0, const CColor& c1, const CColor& c2)
+{
+	{
+		CTexture* tex = mTextures;
+
+		// 线性插值
+		float xLDetal = (v0.x - v2.x) / (v2.y - v0.y); // Y加1x的增量
+		float xRDetal = (v1.x - v2.x) / (v2.y - v1.y);
+
+		float zLDetal = (1/v0.z - 1/v2.z) / (v2.y - v0.y); // z是按1/z线性变化的
+		float zRDetal = (1/v1.z - 1/v2.z) / (v2.y - v1.y);
+
+		float uLDetal = (uv0.x / v0.z - uv2.x / v2.z) / (v2.y - v0.y);
+		float uRDetal =  (uv1.x / v1.z - uv2.x / v2.z) / (v2.y - v1.y);
+
+		float vLDetal = (uv0.y / v0.z - uv2.y / v0.z) / (v2.y - v0.y);
+		float vRDetal =  (uv1.y / v1.z - uv2.y / v0.z) / (v2.y - v1.y);
+
+		// 法线插值
+		Vector4 nLDetal = (n0 - n2) / (v2.y - v0.y);
+		Vector4 nRDetal = (n1 - n2) / (v2.y - v1.y);
+
+		// 观察坐标系坐标插值
+		Vector4 vVLDetal = (vV0 - vV2) / (v2.y - v0.y);
+		Vector4 vVRDetal = (vV1 - vV2) / (v2.y - v1.y);
+
+		// 计算切线空间矩阵
+		Matrix4 TBN;
+		if (mNormalTexture != NULL)
+			FindTBN(vV0, vV1, vV2, uv0, uv1, uv2, TBN);
+
+		for(float y = v0.y; y < v2.y; ++y)
+		{
+			// 避免浮点误差
+			y = (int)(y+0.5f); 
+
+			int xL, xR;
+			xL = (y - v0.y) * xLDetal + v0.x;
+			xR = (y - v1.y) * xRDetal + v1.x;
+
+			float zL, zR;
+			zL = (y - v0.y) * zLDetal + 1 / v0.z;
+			zR = (y - v1.y) * zRDetal + 1 / v1.z;
+
+			int divWidth = EqualFloat(xL - xR, 0.0) ? 1.0 : 1/(xL - xR); // 避免分母为零
+			float zStep = (zR - zL) / divWidth;
+
+			// uv
+			float uL = (y - v0.y) * uLDetal + uv0.x / v0.z;
+			float vL = (y - v1.y) * vLDetal + uv1.y / v1.z;
+
+			float uR = (y - v0.y) * uRDetal + uv0.x / v0.z;
+			float vR = (y - v1.y) * vRDetal + uv1.y / v1.z;
+
+			float uStep = (uR - uL) / divWidth;
+			float vStep = (vR - vR) / divWidth;
+
+			float u = uL, v = vL;
+			CColor texC(255, 255, 255);
+
+			// phong相关参数计算
+			Vector4 normalL = nLDetal * (y - v0.y) + n0;
+			Vector4 normalR = nRDetal * (y - v1.y) + n1;
+			Vector4 normalStep = (normalR - normalL) * divWidth;
+			Vector4 n = normalL;
+
+			Vector4 vViewL = vVLDetal * (y - v0.y) + vV0;
+			Vector4 vViewR = vVRDetal * (y - v1.y) + vV1;
+			Vector4 vViewStep = (vViewR - vViewL) * divWidth;
+			Vector4 vV = vViewL;
+
+			CColor c(255, 255, 255);
+			for(float x = xL, z = zL; x < xR; x++, z += zStep, u += uStep, v += vStep, n += normalStep, vV += vViewStep)
+			{
+				x = (int)(x + 0.5f);
+
+				// 先检查像素是否在屏幕内, 然后检查Zbuffer
+				if (x <0 || y < 0 || x > SCREEN_WIDTH || y > SCREEN_HEIGHT)
+					continue;
+				if (!CheckZ(x, y, z))
+					continue;
+
+				if(tex)
+				{
+					texC = tex->GetPixelUV(u / z, v / z);
+				}
+
+				// phong逐像素计算光照
+				if(mNormalTexture)
+				{
+					CColor bumpColor = CalNormallMapNormal(mNormalTexture, mLights, mLightPositionView, TBN, vV, u, v);
+					c = PhongCal(mLights, mLightPositionView, vV / z, n / z) * bumpColor;
+				}else
+				{
+					c = PhongCal(mLights, mLightPositionView, vV / z, n / z);
+				}
+
+				if(mFillType == FILL_WIREFRAME)
+				{
+					if(x > 0 && y > 0 && (x < xL + 1) || (x > xR - 1))
+						SetPixel(x, y, c);
+				}else{
+					SetPixel(x, y, c*texC);
+				}
+			}
+		}
+	}
+}
+
+// 通过法线贴图计算切线空间矩阵
+void CGraphics::FindTBN(Vector4 Vertices0, Vector4 Vertices1, Vector4 Vertices2, Vector4 TexCoords0, Vector4 TexCoords1, Vector4 TexCoords2, Matrix4& TBN) 
+{
+    /* Calculate the vectors from the current vertex
+       to the two other vertices in the triangle */
+	// 假设三角形三个坐标点为P1(u1,v1)、P2(u2,v2)、P3(u3,v3)，假设切线空间的三个基为T，B,N(T为切线方向，也就是u方向,B为负法线方向,也就是v方向),其实T和B均在三角形所在的平面上。
+	/* 在使用切线空间的法线映射（normalmap）时，一般来说顶点数据中除了法线向量外还需要加入tangent向量和binormal向量信息，以便在VS中计算切线空间变换矩阵。
+		其中tangent是切平面上纹理坐标u的正方向，
+		binormal是切平面上纹理坐标v的正方向。
+		normal，tangent和binormal三者互相垂直，构成了切线空间坐标系，于是切线空间到世界空间的变换矩阵就是 float3x3( tangent, binormal, normal )
+		====================
+		总结
+		法线映射  就是把法线信息存在贴图里 计算的时候 把数据转到tangentspace来计算 */
+	Vector4 v2v1 = Vertices0 - Vertices2;
+    Vector4 v3v1 = Vertices1 - Vertices2;
+
+    //Calculate the “direction” of the triangle based on texture coordinates.
+
+    // Calculate c2c1_T and c2c1_B
+    float c2c1_T = TexCoords0.x - TexCoords2.x;
+    float c2c1_B = TexCoords0.y - TexCoords2.y;
+
+    // Calculate c3c1_T and c3c1_B
+    float c3c1_T = TexCoords1.x - TexCoords2.x;
+    float c3c1_B = TexCoords1.y - TexCoords2.y;
+
+    //Look at the references for more explanation for this one.
+    float fDenominator = c2c1_T * c3c1_B - c3c1_T * c2c1_B;  
+    /*ROUNDOFF here is a macro that sets a value to 0.0f if the value is a very small
+      value, such as > -0.001f and < 0.001. */
+
+    /* EDIT by c programmer: you should NEVER perform an equality test against a floating point value, even if
+       your macro has set fDenominator to 0.0f.  The comparison can still fail.  The code needs fixed.
+       Instead you should check if fDenominator is within an epsilon value of 0.0f. */
+
+    if (EqualFloat(fDenominator, 0.0f))
+    {
+           /* We won't risk a divide by zero, so set the tangent matrix to the identity matrix */
+           TBN = Matrix4(	Vector4(1.0f, 0.0f, 0.0f),
+							Vector4(0.0f, 1.0f, 0.0f),
+							Vector4(0.0f, 0.0f, 1.0f));
+    }
+    else
+    {            
+            // Calculate the reciprocal value once and for all (to achieve speed)
+            float fScale = 1.0f / fDenominator;
+
+            /* Time to calculate the tangent, binormal, and normal.
+               Look at Sren’s article for more information. */
+			/*
+			因为显卡一般是以三角形作为最小渲染单位的，我们假设三角形的三点为p1, p2, p3，设该三角形所对应的一个空间为(T,B,N), 其中T和B构成的平面就是三角形所在平面, 而T和B分别对应U和V方向，此空间
+			的作用是让任何向量从tangent space变换到world space（实际上我们最终要求的是反过来的，先这样好作说明，最后求逆即可） 
+
+			那么P2-P1的向量p必定在T及B所构成的平面上，由此推出： 
+
+			P2-P1 = (U2-U1)*T+(V2-V1)*B
+			P3-P1 = (U3-U1)*T+(V3-V1)*B 
+			*/
+            Vector4 T, B, N;
+            T = Vector4((c3c1_B * v2v1.x - c2c1_B * v3v1.x) * fScale,
+                         (c3c1_B * v2v1.y - c2c1_B * v3v1.y) * fScale,
+                         (c3c1_B * v2v1.z - c2c1_B * v3v1.z) * fScale);
+
+            B = Vector4((-c3c1_T * v2v1.x + c2c1_T * v3v1.x) * fScale,
+                         (-c3c1_T * v2v1.y + c2c1_T * v3v1.y) * fScale,
+                         (-c3c1_T * v2v1.z + c2c1_T * v3v1.z) * fScale);
+
+            N = T.CrossVector(B); //Cross product!
+
+			// 最后要T和B和N反过来作用向量从world space变换到tangent space, 我们只要对其求逆即可。 
+			TBN = Matrix4(T, B, N).Transpose(); 
+	}
+}
+
+CColor CGraphics::CalNormallMapNormal(CTexture* bumpTex, CLight* light, const Vector4& lightPosV, const Matrix4& TBN, const Vector4& vPos, float u, float v)
+{
+	if (light == NULL)
+		return CColor(255, 255, 255);
+
+	CColor cT = bumpTex->GetPixelUV(u, v);
+	float factor = 2.0f / 255.0f;
+	// 法线计算凹凸
+	float xN = cT.b * factor - 1.0f;
+	float yN = cT.r * factor - 1.0f;
+	float zN = cT.g * factor - 1.0f;
+	Vector4 nT(xN, yN, zN, 0.0f);
+	nT = nT.Nomalize();
+
+	Vector4 litDir = lightPosV - vPos;
+	// 观察坐标系里的光线坐标要转换到切线坐标系
+	litDir = Vec4MulMat4(litDir, TBN);
+	litDir = litDir.Nomalize();
+
+	float f = nT.DotVector(litDir);
+	f = Clamp(f, 0.0f, 1.0f);
+	return CColor(255, 255, 255) * (1 - f);
 }
 
 bool CGraphics::CheckZ(int x, int y, float z)

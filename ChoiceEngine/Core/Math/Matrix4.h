@@ -51,6 +51,14 @@ namespace CE
 				m_fValue[3][3] = v33;
 			}
 
+			Matrix4(const Vector4& x, const Vector4& y, const Vector4& z)
+			{
+				m_fValue[0][0] = x.x, m_fValue[0][1] = x.y, m_fValue[0][2] = x.z, m_fValue[0][3] = 0;
+				m_fValue[1][0] = y.x, m_fValue[1][1] = y.y, m_fValue[1][2] = y.z, m_fValue[1][3] = 0;
+				m_fValue[2][0] = z.x, m_fValue[2][1] = z.y, m_fValue[2][2] = z.z, m_fValue[2][3] = 0;
+				m_fValue[3][0] = 0,   m_fValue[3][1] = 0,   m_fValue[3][2] = 0,   m_fValue[3][3] = 1;
+			}
+
 			Matrix4 operator+(const Matrix4& rV)
 			{
 				return Matrix4(	m_fValue[0][0] + rV.m_fValue[0][0], m_fValue[0][1] + rV.m_fValue[0][1], m_fValue[0][2] + rV.m_fValue[0][2], m_fValue[0][3] + rV.m_fValue[0][3],
@@ -190,6 +198,19 @@ namespace CE
 					m(0, 2) * (m(1, 0) * m(2, 1) - m(1, 1) * m(2, 0)));
 
 				return out;
+			}
+
+			// ×ªÖÃ
+			inline Matrix4 Transpose() const
+			{
+				Matrix4 temp;
+				for (int i = 0; i < 4; i++)
+				{
+					for (int j = 0; j < 4; j++)
+						temp.m_fValue[i][j] = m_fValue[j][i];
+				}
+
+				return temp;
 			}
 
 			inline static void RotateX(Matrix4& mat, float fDegree)

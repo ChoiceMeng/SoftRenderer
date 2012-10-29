@@ -21,7 +21,7 @@ namespace CE
 
 			}
 
-			Vector4(float x, float y, float z, float w)
+			Vector4(float x, float y, float z, float w = 1.0f)
 			{
 				x = x;
 				y = y;
