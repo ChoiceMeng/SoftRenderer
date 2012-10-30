@@ -100,14 +100,14 @@ public:
 };
 
 // face structure
-struct tFace
+struct _declspec(dllexport) tFace
 {
 	int vertIndex[3];			// vertex index
 	int coordIndex[3];			// texture coordinate index
 };
 
 //  material information structure
-struct tMaterialInfo
+struct _declspec(dllexport) tMaterialInfo
 {
 	char			strName[255];			// texture name
 	char			strFile[255];			// if exist texture,it is texture name
@@ -120,7 +120,7 @@ struct tMaterialInfo
 } ;
 
 //  object information structure
-struct t3DObject 
+struct _declspec(dllexport) t3DObject 
 {
 	t3DObject();
 	~t3DObject();
@@ -137,7 +137,7 @@ struct t3DObject
 };
 
 //  model information structure
-struct t3DModel 
+struct _declspec(dllexport) t3DModel 
 {
 	t3DModel()
 	{

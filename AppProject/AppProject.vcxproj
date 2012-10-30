@@ -13,6 +13,7 @@
   <ItemGroup>
     <ClCompile Include="Graphics.cpp" />
     <ClCompile Include="TestApp.cpp" />
+    <ClCompile Include="Texture.cpp" />
     <ClCompile Include="WindowBase.cpp" />
   </ItemGroup>
   <ItemGroup>

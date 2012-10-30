@@ -7,7 +7,7 @@ namespace CE
 {
 	namespace Core
 	{
-		class C3DObject
+		class _declspec(dllexport) C3DObject
 		{
 		public:
 			C3DObject(MAXOBJ::t3DModel* model);

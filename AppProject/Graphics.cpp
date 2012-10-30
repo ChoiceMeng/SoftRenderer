@@ -1,9 +1,24 @@
 #include "Graphics.h"
 
+const static std::string MOD_NAME_1 = "Sphere02.3DS";
+const static std::string MOD_NAME_2 = "Teapot02.3DS";
+
+const static std::string TEX_NAME_1 = "fieldstone_c.bmp";
+const static std::string TEX_NAME_2 = "qipan2.bmp";
+
+const static std::string BUMP_TEX_NAME = "fieldstone_n.bmp";
+
 HINSTANCE GHInstance;
 CGraphics::CGraphics(void)
 {
 	mFillType = FILL_SOLID;
+	mCullType = CULL_BACK;
+	mShadeType = SHADE_GAUROUD;
+
+	mFaces			= NULL;
+	mFaceNum		= 0;
+	mVertexs		= NULL;
+	mVertexNum		= 0;
 }
 
 
@@ -56,6 +71,38 @@ bool CGraphics::InitGDI( HINSTANCE hinstance )
 
 	mZBuffer = new float[SCREEN_WIDTH * SCREEN_HEIGHT];
 	memset(mZBuffer, 0, sizeof(float) * SCREEN_WIDTH * SCREEN_HEIGHT);
+
+	//////////////////////////////////////////////////////////////////////////model data
+	MAXOBJ::t3DModel* model = new MAXOBJ::t3DModel;
+	MAXOBJ::CLoad3DS modelLoader;
+	modelLoader.Import3DS(model, GetFilePath(MOD_NAME_1).c_str());
+	mObject_Sphere = new C3DObject(model);
+
+	MAXOBJ::t3DModel* model1 = new MAXOBJ::t3DModel;
+	modelLoader.Import3DS(model1, GetFilePath(MOD_NAME_2).c_str());
+	mObject_Teapot = new C3DObject(model1);
+
+	mLights  = new CLight();
+	mLights->m_fShininess = 10;
+	mLights->m_fKSpecular = 5.5;
+	mLights->m_fKDiffuse = 0.75;
+	mLights->m_dWorldPos = Vector4(40, 50, 40);
+
+	m_pCamera = new CCamera();
+	m_pCamera->m_Near		= 1.0f;
+	m_pCamera->m_Far		= 200.0f;
+	m_pCamera->m_Fov	= 75.0f;
+	m_pCamera->m_Aspect		= SCREEN_WIDTH / (float)SCREEN_HEIGHT;
+
+	m_pCamera->m_WorldPos = Vector3(30.0f, 30.0f, 0.001f);
+	m_pCamera->m_LookAt		= Vector3(0.0f, 6.0f, 0.0f);
+	m_pCamera->m_Up			= Vector3(0.0f, 1.0f, 0.0f);
+
+	mTextures		= new CTexture(GetFilePath(TEX_NAME_1));
+	//mTexture2		= new FTexture(GetFilePath(TEX_NAME_2));
+	mNormalTexture	= new CTexture(GetFilePath(BUMP_TEX_NAME));
+
+	mShadeType	= SHADE_GAUROUD;
 
 	return true;
 }
@@ -261,7 +308,7 @@ void CGraphics::SetFace( CFace* faces, int faceNum )
 		mFaceNum = faceNum;
 	}
 	memcpy(mFaces, faces, sizeof(CFace) * faceNum);
-	mFaceNum += faceNum;
+	// mFaceNum += faceNum;
 }
 
 CE::Core::CColor CGraphics::PhongCal( CLight* pLight, const Vector4& lightPos, const Vector4& vertexPosView, const Vector4& normal )
@@ -408,6 +455,15 @@ void CGraphics::RasterizeFace(int faceIndex,
 			RasterizeFlatFaceUp(v0, v1, vNew1, uv0, uv1, Vector4(u, v, 0.0f, 0.0f), c0, c1, color);
 			RasterizeFlatFaceDown(v0, vNew1, v2,  uv0, Vector4(u, v, 0.0f, 0.0f), uv2, c1, color, c2);
 		}
+		else if(mShadeType == SHADE_GAUROUD || mShadeType == SHADE_PHONG_Vertex)
+		{
+			RasterizeGouraudFaceUp(v0, v1, vNew1, uv0, uv1, Vector4(u, v, 0.0f, 0.0f), c0, c1, color);
+			RasterizeGouraudFaceDown(v0, vNew1, v2,  uv0, Vector4(u, v, 0.0f, 0.0f), uv2, c1, color, c2);
+		}else
+		{
+			RasterizePhongFaceUp(v0, v1, vNew1, v0V, v1V, newvV, n0, n1, new1Normal, uv0, uv1, Vector4(u, v, 0.0f, 0.0f), c0, c1, color);
+			RasterizePhongFaceUp(v0, vNew1, v2,  v0V, newvV, v2V,  n0, new1Normal, n2,  uv0, Vector4(u, v, 0.0f, 0.0f), uv2, c0, color, c2 );
+		}
 	}
 	else
 	{
@@ -428,6 +484,14 @@ void CGraphics::RasterizeFace(int faceIndex,
 		{
 			RasterizeFlatFaceUp(v0, vNew1, v1,  uv0, Vector4(u, v, 0.0f, 0.0f), uv1,  c0, color, c1 );
 			RasterizeFlatFaceDown(vNew1, v1,  v2,  Vector4(u, v, 0.0f, 0.0f), uv1,  uv2, color, c1, c2);
+		}else if(mShadeType == SHADE_GAUROUD || mShadeType == SHADE_PHONG_Vertex)
+		{
+			RasterizeGouraudFaceUp(v0, vNew1, v1, uv0, Vector4(u, v, 0.0f, 0.0f), uv1, c0, color, c1 );
+			RasterizeGouraudFaceDown(vNew1, v1,  v2, Vector4(u, v, 0.0f, 0.0f), uv1, uv2, color, c1, c2);
+		}else
+		{
+			RasterizePhongFaceUp(v0, vNew1, v1, v0V, newvV, v1V, n0, new1Normal, n1, uv0, Vector4(u, v, 0.0f, 0.0f), uv1, c0, color, c1 );
+			RasterizePhongFaceDown(vNew1, v1, v2, newvV, v1V, v2V,  new1Normal, n1, n2, Vector4(u, v, 0.0f, 0.0f),  uv1, uv2, color, c0, c2 );
 		}
 	}
 }
@@ -1162,6 +1226,8 @@ void CGraphics::DrawPrimitives()
 
 	TranslateToViewSpace();
 
+	ProcessCull();
+
 	ProcessLight();
 
 	TranslateToProjectiveSpace();
@@ -1209,4 +1275,33 @@ void CGraphics::SetPixel( int x, int y, const CColor& c )
 	pSrcPix[1] = c.g;
 	pSrcPix[2] = c.r;
 	pSrcPix[3] = c.a;
+}
+
+void CGraphics::DrawString(const std::string &str, int x, int y, const CColor &c)
+{
+	::SetTextColor(mBufferedHDC, RGB(c.r, c.g, c.b));
+	::TextOut(mBufferedHDC, x, y, str.c_str(), str.length()); 
+}
+
+void CGraphics::ProcessCull()
+{
+	// 简单背面剔除
+	if(mCullType == CULL_NONE || mFillType == FILL_WIREFRAME)
+		return;
+
+	int factor = ( mCullType == CULL_BACK ? 1 : -1 );
+
+	// 使用观察坐标进行剔除判断
+	for(int i = 0; i < mFaceNum; ++i)
+	{
+		CFace& face = mFaces[i];
+		Vector4 v0 = mVertexs[face.mVertIndex[0]].mVertexView - mVertexs[face.mVertIndex[1]].mVertexView;
+		Vector4 v1 = mVertexs[face.mVertIndex[0]].mVertexView - mVertexs[face.mVertIndex[2]].mVertexView;
+
+		Vector4 faceNormal = v0.CrossVector(v1) * factor;
+		float result = faceNormal.DotVector(-mVertexs[face.mVertIndex[1]].mVertexView/*摄像机到顶点的向量*/);
+
+		if(result < 0) // 夹角大于90度
+			face.isCulled = true;
+	}
 }

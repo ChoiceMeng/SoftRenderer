@@ -5,7 +5,7 @@ using namespace CE::Core;
 using namespace CE::Math;
 
 // 暂时使用方向光光源
-class CLight
+class _declspec(dllexport)  CLight
 {
 public:
 	CLight(void);

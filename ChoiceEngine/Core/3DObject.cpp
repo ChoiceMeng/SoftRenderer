@@ -1,5 +1,6 @@
 #include "3DObject.h"
-using namespace CE::Math;
+using namespace CE::Core;
+using namespace MAXOBJ;
 
 C3DObject::C3DObject(MAXOBJ::t3DModel* model)
 {
@@ -13,7 +14,7 @@ C3DObject::C3DObject(MAXOBJ::t3DModel* model)
 		m_pVertexList[i].mVertex.x = obj->pVerts[i].x;
 		m_pVertexList[i].mVertex.y = obj->pVerts[i].y;
 		m_pVertexList[i].mVertex.z = obj->pVerts[i].z;
-		m_pVertexList[i].mVertex.z = 1.0f;
+		m_pVertexList[i].mVertex.w = 1.0f;
 
 		m_pVertexList[i].mNormal.x = obj->pNormals[i].x;
 		m_pVertexList[i].mNormal.y = obj->pNormals[i].y;

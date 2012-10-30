@@ -1,11 +1,14 @@
+#pragma once
 #include "Pre.h"
+#include "common.h"
+#include <Windows.h>
 
 class CTexture
 {
 public:
 	int mWidth, mHeight;
 
-	CTexture(const std::string &filename);
+	CTexture(std::string filename);
 	~CTexture();
 
 	inline std::string GetName() const { return mName; }

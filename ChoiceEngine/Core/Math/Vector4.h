@@ -49,6 +49,11 @@ namespace CE
 				return Vector4(x - vec.x, y - vec.y, z - vec.z, w - vec.w);
 			}
 
+			inline Vector4 operator-() const
+			{
+				return Vector4(-x, -y, -z, 1);
+			}
+
 			inline Vector4 operator/(const float nScale)
 			{
 				float fScale = 1.0 / nScale;

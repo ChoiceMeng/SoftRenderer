@@ -16,6 +16,8 @@ mWindowTitle(szWindowName), mHinstance(hInstance)
 	m_pGraphics = new CGraphics;
 	m_pGraphics->InitGDI(mHinstance);
 
+	mObject_Drawing = m_pGraphics->mObject_Teapot;
+
 	OnUpdate();
 
 	UpdateWindow();
@@ -246,28 +248,66 @@ void CWindowBase::OnPaint(HDC hdc)
 {
 
 	m_pGraphics->ClearBuffer();
-	/*{
-		//----Begin Object 1----
-		FMatrix44 mat;
-		static long t = 90;
+	
+	//----Begin Object 1----
+	Matrix4 mat;
+	static long t = 90;
 
-		if (mSelfRotate)
-			t += 2;
+	//if (mSelfRotate)
+	//	t += 2;
 
-		RotateMatrix44Y(mat, t);
-		mGraphicss->SetTransform(TS_LOCAL, mat);
-		TranslateMatrix44(mat, 0, 0, 0);
-		mGraphicss->SetTransform(TS_WORLD, mat);
+	Matrix4::RotateY(mat, t);
+	m_pGraphics->SetTransform(TS_LOCAL, mat);
+	// TranslateMatrix44(mat, 0, 0, 0);
+	m_pGraphics->SetTransform(TS_WORLD, mat);
 
-		// 提交并绘制
-		mGraphicss->SetVertex(mObject_Drawing->mVerts, mObject_Drawing->mNumOfVerts);
-		mGraphicss->SetFace(mObject_Drawing->mFaces, mObject_Drawing->mNumOfFaces);
-		mGraphicss->DrawPrimitives();
-		//----End Object 1-----
+	// 提交并绘制
+	m_pGraphics->SetVertex(mObject_Drawing->m_pVertexList, mObject_Drawing->m_nVetexCount);
+	m_pGraphics->SetFace(mObject_Drawing->m_pFace, mObject_Drawing->m_nFaceCount);
+	m_pGraphics->DrawPrimitives();
+	//----End Object 1-----
 
-		DrawInfos();
-	}*/
+	DrawInfos();
+	
 	m_pGraphics->FlipBuffer(hdc);
+}
+
+void CWindowBase::DrawInfos()
+{
+// 	int i = mGraphics->GetVisibleFaceNum();
+// 	std::string visibleFace = IntToString((float)mGraphics->GetVisibleFaceNum());
+// 	std::string totalFace	= IntToString((float)mGraphics->GetTotalFaceNum());
+// 	std::string faces = "  Faces [Visble/Total] - " + visibleFace + " / " + totalFace;						
+// 
+// 	mGraphics->DrawString(faces, 10, 15);
+// 
+// 	if (mShowHelp)
+// 	{
+// 		std::string help;
+// 		help = "  1. Flat 2. Gaurund 3. Phong Vext 4. Phong Pixel [Shading]";
+// 		mGraphics->DrawString(help, 10, 40, FColor(0, 255, 0));
+// 		help = "  F. Bump Map On/Off(Phong Pixl Textrued)";
+// 		mGraphics->DrawString(help, 10, 55, FColor(0, 255, 0));
+// 		help = "  E. Texture 1/Texture 2/Off";
+// 		mGraphics->DrawString(help, 10, 70, FColor(0, 255, 0));
+// 		help = "  R. Self Rotation";
+// 		mGraphics->DrawString(help, 10, 85, FColor(0, 255, 0));
+// 		help = "  Q. Light On/Off";
+// 		mGraphics->DrawString(help, 10, 100, FColor(0, 255, 0));
+// 		help = "  X. Reset Camera";
+// 		mGraphics->DrawString(help, 10, 115, FColor(0, 255, 0));
+// 		help = "  C. Change Model";
+// 		mGraphics->DrawString(help, 10, 130, FColor(0, 255, 0));
+// 
+// 		help = "  W. S. A. D. Move Camera";
+// 		mGraphics->DrawString(help, 10, 430, FColor(0, 255, 0));
+// 	}
+// 	else
+// 	{
+// 		std::string help;
+// 		help = "  [Help ] H.";
+// 		mGraphics->DrawString(help, 10, 40, FColor(0, 255, 0));
+// 	}
 }
 
 void CWindowBase::OnUpdate()

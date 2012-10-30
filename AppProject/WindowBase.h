@@ -1,6 +1,6 @@
 #pragma once
 #include "common.h"
-#include <Windows.h>
+#include "Pre.h"
 
 class CGraphics;
 class CWindowBase
@@ -27,11 +27,15 @@ public:
 	void StartLoop();
 
 	virtual void OnKeyDown(int msg);
+
+	void DrawInfos();
 protected:
 	HWND					mHwnd;	// ::CreateWindow·µ»Ø
 	std::string				mWindowTitle;
 	HINSTANCE				mHinstance;
 
 	CGraphics*				m_pGraphics;
+public:
+	C3DObject* mObject_Drawing;
 };
 

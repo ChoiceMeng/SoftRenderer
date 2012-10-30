@@ -50,7 +50,7 @@ struct tChunk
 };
 
 // CLoad3DS
-class CLoad3DS
+class _declspec(dllexport) CLoad3DS
 {
 public:
 	CLoad3DS();								// init variable

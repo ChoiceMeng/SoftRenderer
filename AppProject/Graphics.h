@@ -3,7 +3,6 @@
 #include <Windows.h>
 #include "Texture.h"
 #include "Camera.h"
-#include "Pre.h"
 
 enum ETS_Transform
 {
@@ -27,6 +26,13 @@ enum EFill_Type
 {
 	FILL_WIREFRAME	= 1,
 	FILL_SOLID		= 2,
+};
+
+enum ECull_Type
+{
+	CULL_NONE	= 0,
+	CULL_BACK	= 1,
+	CULL_FRONT	= 2,
 };
 
 class CGraphics
@@ -58,7 +64,7 @@ public:
  	void	TranslateToProjectiveSpace();
  	void	TranslateToScreenSpace(const CFace& face, Vector4& v0, Vector4& v1, Vector4& v2);
 // 
-// 	void	ProcessCull();
+ 	void	ProcessCull();
  	void	ProcessLight();
 	CColor PhongCal(CLight* pLight, const Vector4& lightPos, const Vector4& posView, const Vector4& normal);
 
@@ -119,6 +125,8 @@ public:
 	int		GetScreenHeight() const { return SCREEN_HEIGHT; }
 
 	bool		CheckZ(int x, int y, float z);
+
+	void DrawString(const std::string &str, int x, int y, const CColor &c);
 private:
 	HBITMAP							mBufferedHandle;
 	HDC								mBufferedHDC;
@@ -152,8 +160,10 @@ private:
 	CTexture*						mTextures/*[MAX_TEXTURE_NUM]*/; // 暂时一张纹理
 	CTexture*						mNormalTexture;	// 法线贴图
 
-	ESHADE_Type						mShadeType;
+	ESHADE_Type				mShadeType;
 	EFill_Type						mFillType;
+	ECull_Type					mCullType;
+public:
+	C3DObject*			mObject_Sphere;
+	C3DObject*			mObject_Teapot;
 };
-
-extern HINSTANCE GHInstance;
