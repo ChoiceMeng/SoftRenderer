@@ -83,19 +83,27 @@ public:
 		const Vector4& uv0, const Vector4& uv1, const Vector4& uv2,
 		const CColor& c0, const CColor& c1, const CColor& c2);
 
-	void RasterizeGouraudFaceUp(const Vector4& v0, const Vector4& v1, const Vector4& v2, 
+	void CGraphics::RasterizeGouraudFaceUp(const Vector4& v0, const Vector4& v1, const Vector4& v2, 
 		const Vector4& uv0, const Vector4& uv1, const Vector4& uv2,
 		const CColor& c0, const CColor& c1, const CColor& c2);
 	void RasterizeGouraudFaceDown(const Vector4& v0, const Vector4& v1, const Vector4& v2, 
 		const Vector4& uv0, const Vector4& uv1, const Vector4& uv2,
 		const CColor& c0, const CColor& c1, const CColor& c2);
 
-	void RasterizePhongFaceUp(const Vector4& v0, const Vector4& v1, const Vector4& v2, 
+	void RasterizePhongFaceUp(const Vector4& v0, const Vector4& v1, const Vector4& v2,
+		const Vector4& vV0, const Vector4& vV1, const Vector4& vV2,
+		const Vector4& n0, const Vector4& n1, const Vector4& n2,
 		const Vector4& uv0, const Vector4& uv1, const Vector4& uv2,
 		const CColor& c0, const CColor& c1, const CColor& c2);
-	void RasterizePhongFaceDown(const Vector4& v0, const Vector4& v1, const Vector4& v2, 
+
+	void RasterizePhongFaceDown(const Vector4& v0, const Vector4& v1, const Vector4& v2,
+		const Vector4& vV0, const Vector4& vV1, const Vector4& vV2,
+		const Vector4& n0, const Vector4& n1, const Vector4& n2,
 		const Vector4& uv0, const Vector4& uv1, const Vector4& uv2,
 		const CColor& c0, const CColor& c1, const CColor& c2);
+
+	void FindTBN(Vector4 Vertices0, Vector4 Vertices1, Vector4 Vertices2, Vector4 TexCoords0, Vector4 TexCoords1, Vector4 TexCoords2, Matrix4& TBN);
+	CColor CalNormallMapNormal(CTexture* bumpTex, CLight* light, const Vector4& lightPosV, const Matrix4& TBN, const Vector4& vPos, float u, float v);
 	void SetPixel(int x, int y, const CColor& color);
 	//////////////////////////////////////////////////////////////////////////
 
@@ -142,9 +150,10 @@ private:
 	CLight*							mLights/*[MAX_LIGHT_NUM]*/;
 	Vector4							mLightPositionView;	// 光照位置, 摄像机坐标系下
 	CTexture*						mTextures/*[MAX_TEXTURE_NUM]*/; // 暂时一张纹理
+	CTexture*						mNormalTexture;	// 法线贴图
 
 	ESHADE_Type						mShadeType;
-	EFill_Type								mFillType;
+	EFill_Type						mFillType;
 };
 
 extern HINSTANCE GHInstance;
