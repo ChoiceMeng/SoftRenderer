@@ -22,3 +22,12 @@ inline std::string GetFilePath(const std::string& filename)
 {
 	return "3DS/" + filename;
 }
+
+inline std::string IntToString(float num)
+{
+	std::stringstream ss;
+	ss << num;
+	std::string re;
+	ss >> re;
+	return re;
+}

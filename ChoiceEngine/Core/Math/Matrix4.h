@@ -18,12 +18,12 @@ namespace CE
 
 			Matrix4(const float value[4][4])
 			{
-				memcpy(m_fValue, value, sizeof(float) * 12);
+				memcpy(m_fValue, value, sizeof(float) * 16);
 			}
 
 			Matrix4& operator=(const Matrix4& rV)
 			{
-				memcpy(m_fValue, rV.m_fValue, sizeof(float) * 12);
+				memcpy(m_fValue, rV.m_fValue, sizeof(float) * 16);
 
 				return *this;
 			}
@@ -229,10 +229,10 @@ namespace CE
 				float sinA = sin(Degree_TO_Radian(fDegree));
 				float cosA = cos(Degree_TO_Radian(fDegree));
 
-				mat(0, 0) = cosA, mat(0, 1) = 0, mat(0, 2) = -sinA, mat(0, 3) = 0,
-					mat(1, 0) = 0, mat(1, 1) = 1, mat(1, 2) = 0, mat(1, 3) = 0,
-					mat(2, 0) = sinA, mat(2, 1) = 0, mat(2, 2) = cosA, mat(2, 3) = 0,
-					mat(3, 0) = 0, mat(3, 1) = 0, mat(3, 2) = 0, mat(3, 3) = 1;
+				mat(0, 0) = cosA,	mat(0, 1) = 0, mat(0, 2) = -sinA,	mat(0, 3) = 0,
+				mat(1, 0) = 0,		mat(1, 1) = 1, mat(1, 2) = 0,			mat(1, 3) = 0,
+				mat(2, 0) = sinA,	mat(2, 1) = 0, mat(2, 2) =	cosA,	mat(2, 3) = 0,
+				mat(3, 0) = 0,		mat(3, 1) = 0, mat(3, 2) = 0,			mat(3, 3) = 1;
 			}
 
 			inline static void RotateZ(Matrix4& mat, float fDegree)
@@ -322,10 +322,10 @@ namespace CE
 			// fov:俯仰视角 aspect:分辨率 zn:近裁面 zf:远裁面
 			static void ProjectMatrix(Matrix4& mat, float fov, float aspect, float zn, float zf)
 			{
-				mat.m_fValue[0][0] = 1/tan(fov/2),	mat.m_fValue[0][1] = 0,								mat.m_fValue[0][2] = 0,						mat.m_fValue[0][3] = 0;
-				mat.m_fValue[1][0] = 0,					mat.m_fValue[1][1] = 1/tan(fov/2)/aspect,	mat.m_fValue[1][2] =0,							mat.m_fValue[1][3] = 0;
-				mat.m_fValue[2][0] = 0,					mat.m_fValue[2][1] =0,									mat.m_fValue[2][2] = zf/(zf-zn),			mat.m_fValue[2][3] = 1,	// 存放z值
-				mat.m_fValue[3][0] = 0,					mat.m_fValue[3][1] = 0,								mat.m_fValue[3][2] = -zf*zn/(zf-zn),		mat.m_fValue[3][3] = 0;	
+				mat.m_fValue[0][0] = 1/tan(fov/2)/aspect,	mat.m_fValue[0][1] = 0,								mat.m_fValue[0][2] = 0,						mat.m_fValue[0][3] = 0;
+				mat.m_fValue[1][0] = 0,								mat.m_fValue[1][1] = 1/tan(fov/2),				mat.m_fValue[1][2] =0,							mat.m_fValue[1][3] = 0;
+				mat.m_fValue[2][0] = 0,								mat.m_fValue[2][1] =0,									mat.m_fValue[2][2] = zf/(zf-zn),			mat.m_fValue[2][3] = 1,	// 存放z值
+				mat.m_fValue[3][0] = 0,								mat.m_fValue[3][1] = 0,								mat.m_fValue[3][2] = -zf*zn/(zf-zn),		mat.m_fValue[3][3] = 0;	
 			}
 
 			/*
@@ -405,6 +405,10 @@ namespace CE
 				out = result.Inverse();
 			}
 		//}
+			static const Matrix4 IDENTITY(1.0f, 0.0f, 0.0f, 0.0f,
+				0.0f, 1.0f, 0.0f, 0.0f,
+				0.0f, 0.0f, 1.0f, 0.0f,
+				0.0f, 0.0f, 0.0f, 1.0f);
 	}
 }
 

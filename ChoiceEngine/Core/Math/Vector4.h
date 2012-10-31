@@ -16,37 +16,37 @@ namespace CE
 		class _declspec(dllexport)  Vector4
 		{
 		public:
-			Vector4()
+			Vector4() : x(0.0f), y(0.0f), z(0.0f), w(1.0f)
 			{
 
 			}
 
-			Vector4(float x, float y, float z, float w = 1.0f)
+			Vector4(float x1, float y1, float z1, float w1 = 1.0f)
 			{
-				x = x;
-				y = y;
-				z = z;
-				w = w;
+				x = x1;
+				y = y1;
+				z = z1;
+				w = w1;
 			}
 
 			inline Vector4 operator*(const float nScale)
 			{
-				return Vector4(x * nScale, y * nScale, z * nScale, w * nScale);
+				return Vector4(x * nScale, y * nScale, z * nScale, 1);
 			}
 
 			inline Vector4 operator*(const Vector4& vec)
 			{
-				return Vector4(x * vec.x, y * vec.y, z * vec.z, w * vec.w);
+				return Vector4(x * vec.x, y * vec.y, z * vec.z, 1);
 			}
 
 			inline Vector4 operator+(const Vector4& vec)
 			{
-				return Vector4(x + vec.x, y + vec.y, z + vec.z, w + vec.w);
+				return Vector4(x + vec.x, y + vec.y, z + vec.z, 1);
 			}
 
 			inline Vector4 operator-(const Vector4& vec) const
 			{
-				return Vector4(x - vec.x, y - vec.y, z - vec.z, w - vec.w);
+				return Vector4(x - vec.x, y - vec.y, z - vec.z, 1);
 			}
 
 			inline Vector4 operator-() const
@@ -58,12 +58,12 @@ namespace CE
 			{
 				float fScale = 1.0 / nScale;
 
-				return Vector4(x * fScale, y * fScale, z * fScale, w * w);
+				return Vector4(x * fScale, y * fScale, z * fScale, 1);
 			}
 
 			inline Vector4 operator/(const Vector4& vec)
 			{
-				return Vector4(x / vec.x, y / vec.y, z / vec.z, w / vec.w);
+				return Vector4(x / vec.x, y / vec.y, z / vec.z, 1);
 			}
 
 			inline Vector4 operator*=(int nScale)
@@ -71,7 +71,6 @@ namespace CE
 				x *= nScale;
 				y *= nScale;
 				z *= nScale;
-				w *= nScale;
 
 				return *this;
 			}
@@ -81,7 +80,6 @@ namespace CE
 				x *= vec.x;
 				y *= vec.y;
 				z *= vec.z;
-				w *= vec.w;
 
 				return *this;
 			}
@@ -91,7 +89,6 @@ namespace CE
 				x += vec.x;
 				y += vec.y;
 				z += vec.z;
-				w += vec.w;
 
 				return *this;
 			}
@@ -101,7 +98,6 @@ namespace CE
 				x -= vec.x;
 				y -= vec.y;
 				z -= vec.z;
-				w -= vec.w;
 
 				return *this;
 			}

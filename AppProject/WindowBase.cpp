@@ -250,13 +250,13 @@ void CWindowBase::OnPaint(HDC hdc)
 	m_pGraphics->ClearBuffer();
 	
 	//----Begin Object 1----
-	Matrix4 mat;
+	Matrix4 mat = IDENTITY;
 	static long t = 90;
 
 	//if (mSelfRotate)
 	//	t += 2;
 
-	Matrix4::RotateY(mat, t);
+	// Matrix4::RotateY(mat, t);
 	m_pGraphics->SetTransform(TS_LOCAL, mat);
 	// TranslateMatrix44(mat, 0, 0, 0);
 	m_pGraphics->SetTransform(TS_WORLD, mat);
@@ -279,7 +279,9 @@ void CWindowBase::DrawInfos()
 // 	std::string totalFace	= IntToString((float)mGraphics->GetTotalFaceNum());
 // 	std::string faces = "  Faces [Visble/Total] - " + visibleFace + " / " + totalFace;						
 // 
-// 	mGraphics->DrawString(faces, 10, 15);
+// 	std::string visibleFace = IntToString((float)mGraphics->GetVisibleFaceNum());
+	std::string szCameraPos = "CameraPos:" +  IntToString((int)(m_pGraphics->GetCamera()->m_WorldPos.x)) + "," +  IntToString((int)(m_pGraphics->GetCamera()->m_WorldPos.y)) + "," +  IntToString((int)(m_pGraphics->GetCamera()->m_WorldPos.z));
+ 	m_pGraphics->DrawString(szCameraPos, 10, 15, CColor(0, 255, 0));
 // 
 // 	if (mShowHelp)
 // 	{

@@ -6,7 +6,11 @@ namespace CE
 	class CCamera
 	{
 	public:
-		CCamera():m_WorldPos(0, 0, 0), m_LookAt(0, 0, 1){}
+		CCamera():m_WorldPos(0, 0, 0), m_LookAt(0, 0, 1),
+			m_Fov(75.0f),
+			m_Near(1.0f),
+			m_Far(100.0f),
+			m_Aspect(4.0f / 3.0f){}
 		~CCamera(){}
 	public:
 		void MoveForward()

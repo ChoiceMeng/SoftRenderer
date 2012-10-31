@@ -11,8 +11,8 @@ namespace CE
 		class CVertex
 		{
 		public:
-			Vector4 mVertex;
-			Vector4 mVertexView;
+			Vector4 mVertex;			// 待修改:在TranslateToViewSpace中已经变成了观察坐标
+			Vector4 mVertexView; // 保存观察坐标系坐标
 			Vector4 mNormal;
 			Vector4 mUv;
 

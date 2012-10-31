@@ -19,6 +19,11 @@ CGraphics::CGraphics(void)
 	mFaceNum		= 0;
 	mVertexs		= NULL;
 	mVertexNum		= 0;
+
+	mMatrix[TS_LOCAL]	= IDENTITY;
+	mMatrix[TS_WORLD]	= IDENTITY;
+	mMatrix[TS_VIEW]	= IDENTITY;
+	mMatrix[TS_PROJECT] = IDENTITY;
 }
 
 
@@ -146,6 +151,11 @@ void CGraphics::TranslateToViewSpace()
 		ver.mVertexView = ver.mVertex;
 	}
 
+	// test
+	Matrix4 testMat(1,2,3,4,11,12,13,14,21,22,23,24,31,32,33,34);
+	Matrix4 textOut;
+	float d = testMat.DetM();
+
 	Matrix4 invViewMat;
 	InverseMatrix4(invViewMat, mMatrix[TS_VIEW]);
 	Matrix4 invWorldMat;
@@ -249,10 +259,11 @@ void CGraphics::ProcessLight()
 				CFace& face = mFaces[i];
 				if(!face.isCulled)
 				{
-					Vector4 v0Normal = mVertexs[mFaces[i].mVertIndex[0]].mVertex.Nomalize();
-					Vector4 v1Normal = mVertexs[mFaces[i].mVertIndex[1]].mVertex.Nomalize();
-					Vector4 v2Normal = mVertexs[mFaces[i].mVertIndex[2]].mVertex.Nomalize();
+					Vector4 v0Normal = mVertexs[mFaces[i].mVertIndex[0]].mNormal;
+					Vector4 v1Normal = mVertexs[mFaces[i].mVertIndex[1]].mNormal;
+					Vector4 v2Normal = mVertexs[mFaces[i].mVertIndex[2]].mNormal;
 
+					// 待修改:mVertex在TranslateToViewSpace中已经变成了观察坐标
 					Vector4 lightDir0 = (mLightPositionView - mVertexs[mFaces[i].mVertIndex[0]].mVertex).Nomalize();
 					Vector4 lightDir1 = (mLightPositionView - mVertexs[mFaces[i].mVertIndex[1]].mVertex).Nomalize();
 					Vector4 lightDir2 = (mLightPositionView - mVertexs[mFaces[i].mVertIndex[2]].mVertex).Nomalize();
@@ -261,17 +272,17 @@ void CGraphics::ProcessLight()
 					dot = v0Normal.DotVector(lightDir0);
 					if(dot < 0)
 						dot = DARK_COLOR_FACTOR;
-					mFaces->mColor[0] *= dot;
+					face.mColor[0] *= dot;
 
 					dot = v1Normal.DotVector(lightDir1);
 					if(dot < 0)
 						dot = DARK_COLOR_FACTOR;
-					mFaces->mColor[1] *= dot;
+					face.mColor[1] *= dot;
 
 					dot = v2Normal.DotVector(lightDir2);
 					if(dot < 0)
 						dot = DARK_COLOR_FACTOR;
-					mFaces->mColor[2] *= dot;
+					face.mColor[2] *= dot;
 				}
 			}
 		}
@@ -457,8 +468,8 @@ void CGraphics::RasterizeFace(int faceIndex,
 		}
 		else if(mShadeType == SHADE_GAUROUD || mShadeType == SHADE_PHONG_Vertex)
 		{
-			RasterizeGouraudFaceUp(v0, v1, vNew1, uv0, uv1, Vector4(u, v, 0.0f, 0.0f), c0, c1, color);
-			RasterizeGouraudFaceDown(v0, vNew1, v2,  uv0, Vector4(u, v, 0.0f, 0.0f), uv2, c1, color, c2);
+			RasterizeGouraudFaceUp(v0, v1, vNew1, uv0, uv1, Vector4(u, v, 0.0f), c0, c1, color);
+			RasterizeGouraudFaceDown(v0, vNew1, v2,  uv0, Vector4(u, v, 0.0f), uv2, c1, color, c2);
 		}else
 		{
 			RasterizePhongFaceUp(v0, v1, vNew1, v0V, v1V, newvV, n0, n1, new1Normal, uv0, uv1, Vector4(u, v, 0.0f, 0.0f), c0, c1, color);
@@ -486,8 +497,8 @@ void CGraphics::RasterizeFace(int faceIndex,
 			RasterizeFlatFaceDown(vNew1, v1,  v2,  Vector4(u, v, 0.0f, 0.0f), uv1,  uv2, color, c1, c2);
 		}else if(mShadeType == SHADE_GAUROUD || mShadeType == SHADE_PHONG_Vertex)
 		{
-			RasterizeGouraudFaceUp(v0, vNew1, v1, uv0, Vector4(u, v, 0.0f, 0.0f), uv1, c0, color, c1 );
-			RasterizeGouraudFaceDown(vNew1, v1,  v2, Vector4(u, v, 0.0f, 0.0f), uv1, uv2, color, c1, c2);
+			RasterizeGouraudFaceUp(v0, vNew1, v1, uv0, Vector4(u, v, 0.0f), uv1, c0, color, c1 );
+			RasterizeGouraudFaceDown(vNew1, v1,  v2, Vector4(u, v, 0.0f), uv1, uv2, color, c1, c2);
 		}else
 		{
 			RasterizePhongFaceUp(v0, vNew1, v1, v0V, newvV, v1V, n0, new1Normal, n1, uv0, Vector4(u, v, 0.0f, 0.0f), uv1, c0, color, c1 );
@@ -511,7 +522,7 @@ void CGraphics::RasterizeFlatFaceUp(const Vector4& v0, const Vector4& v1, const 
 	float xRDetal = (v2.x - v0.x) / (v2.y - v0.y);
 
 	float zLDetal = (1/v1.z - 1/v0.z) / (v1.y - v0.y); // z是按1/z线性变化的
-	float zRDetal = (1/v2.z - 1/v0.z) / (v1.y - v0.y);
+	float zRDetal = (1/v2.z - 1/v0.z) / (v2.y - v0.y);
 
 	float uLDetal = (uv1.x / v1.z - uv0.x / v0.z) / (v1.y - v0.y);
 	float uRDetal =  (uv2.x / v2.z - uv0.x / v0.z) / (v2.y - v0.y);
@@ -532,7 +543,7 @@ void CGraphics::RasterizeFlatFaceUp(const Vector4& v0, const Vector4& v1, const 
 		zL = (y - v0.y) * zLDetal + 1 / v0.z;
 		zR = (y - v0.y) * zRDetal + 1 / v0.z;
 
-		int divWidth = EqualFloat(xL - xR, 0.0) ? 1.0 : 1/(xL - xR); // 避免分母为零
+		int divWidth = EqualFloat(xR - xL, 0.0) ? 1.0f : 1.0f/(xR - xL); // 避免分母为零
 		float zStep = (zR - zL) / divWidth;
 
 		// uv
@@ -592,7 +603,7 @@ void CGraphics::RasterizeFlatFaceDown(const Vector4& v0, const Vector4& v1, cons
 	float zRDetal = (1/v2.z - 1/v1.z) / (v2.y - v1.y);
 
 	float uLDetal = (uv2.x / v2.z - uv0.x / v0.z) / (v2.y - v0.y);
-	float uRDetal =  (uv2.x / v2.z - uv0.x / v0.z) / (v2.y - v0.y);
+	float uRDetal =  (uv2.x / v2.z - uv1.x / v1.z) / (v2.y - v1.y);
 
 	float vLDetal = (uv2.y / v2.z - uv1.y / v0.z) / (v2.y - v1.y);
 	float vRDetal =  (uv2.y / v2.z - uv1.y / v0.z) / (v2.y - v1.y);
@@ -610,7 +621,7 @@ void CGraphics::RasterizeFlatFaceDown(const Vector4& v0, const Vector4& v1, cons
 		zL = (y - v0.y) * zLDetal + 1 / v0.z;
 		zR = (y - v1.y) * zRDetal + 1 / v1.z;
 
-		int divWidth = EqualFloat(xL - xR, 0.0) ? 1.0 : 1/(xL - xR); // 避免分母为零
+		int divWidth = EqualFloat(xR - xL, 0.0) ? 1.0f : 1.0f/(xR - xL); // 避免分母为零
 		float zStep = (zR - zL) / divWidth;
 
 		// uv
@@ -667,7 +678,7 @@ void CGraphics::RasterizeGouraudFaceUp(const Vector4& v0, const Vector4& v1, con
 	float xRDetal = (v2.x - v0.x) / (v2.y - v0.y);
 
 	float zLDetal = (1/v1.z - 1/v0.z) / (v1.y - v0.y); // z是按1/z线性变化的
-	float zRDetal = (1/v2.z - 1/v0.z) / (v1.y - v0.y);
+	float zRDetal = (1/v2.z - 1/v0.z) / (v2.y - v0.y);
 
 	float uLDetal = (uv1.x / v1.z - uv0.x / v0.z) / (v1.y - v0.y);
 	float uRDetal =  (uv2.x / v2.z - uv0.x / v0.z) / (v2.y - v0.y);
@@ -698,12 +709,12 @@ void CGraphics::RasterizeGouraudFaceUp(const Vector4& v0, const Vector4& v1, con
 		zL = (y - v0.y) * zLDetal + 1 / v0.z;
 		zR = (y - v0.y) * zRDetal + 1 / v0.z;
 
-		int divWidth = EqualFloat(xL - xR, 0.0) ? 1.0 : 1/(xL - xR); // 避免分母为零
+		int divWidth = EqualFloat(xR - xL, 0.0) ? 1.0f : 1.0f/(xR - xL); // 避免分母为零
 		float zStep = (zR - zL) / divWidth;
 
 		// x方向color插值
 		unsigned char crL = (y - v0.y) * rLDetal + c0.r;
-		unsigned char crR = (y - v0.y) * rLDetal + c0.r;
+		unsigned char crR = (y - v0.y) * rRDetal + c0.r;
 
 		unsigned char cgL = (y - v0.y) * gLDetal + c0.g;
 		unsigned char cgR = (y - v0.y) * gRDetal + c0.g;
@@ -723,7 +734,7 @@ void CGraphics::RasterizeGouraudFaceUp(const Vector4& v0, const Vector4& v1, con
 		float vR = (y - v0.y) * vRDetal + uv0.y / v0.z;
 
 		float uStep = (uR - uL) / divWidth;
-		float vStep = (vR - vR) / divWidth;
+		float vStep = (vR - vL) / divWidth;
 
 		float u = uL, v = vL;
 		CColor texC(255, 255, 255);
@@ -791,10 +802,10 @@ void CGraphics::RasterizeGouraudFaceDown(const Vector4& v0, const Vector4& v1, c
 	float rLDetal = (c2.r - c0.r) / (v2.y - v0.y);
 	float rRDetal = (c2.r - c1.r) / (v2.y - v1.y);
 
-	float gLDetal = (c2.g - c0.g) / (v1.y - v0.y);
+	float gLDetal = (c2.g - c0.g) / (v2.y - v0.y);
 	float gRDetal = (c2.g - c1.g) / (v2.y - v1.y);
 
-	float bLDetal = (c2.b - c0.b) / (v1.y - v0.y);
+	float bLDetal = (c2.b - c0.b) / (v2.y - v0.y);
 	float bRDetal = (c2.b - c1.b) / (v2.y - v1.y);
 
 	for(float y = v0.y; y < v2.y; ++y)
@@ -810,12 +821,12 @@ void CGraphics::RasterizeGouraudFaceDown(const Vector4& v0, const Vector4& v1, c
 		zL = (y - v0.y) * zLDetal + 1 / v0.z;
 		zR = (y - v1.y) * zRDetal + 1 / v1.z;
 
-		int divWidth = EqualFloat(xL - xR, 0.0) ? 1.0 : 1/(xL - xR); // 避免分母为零
+		int divWidth = EqualFloat(xR - xL, 0.0) ? 1.0f : 1.0f/(xR - xL); // 避免分母为零
 		float zStep = (zR - zL) / divWidth;
 
 		// x方向color插值
 		unsigned char crL = (y - v0.y) * rLDetal + c0.r;
-		unsigned char crR = (y - v1.y) * rLDetal + c1.r;
+		unsigned char crR = (y - v1.y) * rRDetal + c1.r;
 
 		unsigned char cgL = (y - v0.y) * gLDetal + c0.g;
 		unsigned char cgR = (y - v1.y) * gRDetal + c1.g;
@@ -835,7 +846,7 @@ void CGraphics::RasterizeGouraudFaceDown(const Vector4& v0, const Vector4& v1, c
 		float vR = (y - v1.y) * vRDetal + uv1.y / v1.z;
 
 		float uStep = (uR - uL) / divWidth;
-		float vStep = (vR - vR) / divWidth;
+		float vStep = (vR - vL) / divWidth;
 
 		float u = uL, v = vL;
 		CColor texC(255, 255, 255);
@@ -893,7 +904,7 @@ void CGraphics::RasterizePhongFaceUp(const Vector4& v0, const Vector4& v1, const
 	float xRDetal = (v2.x - v0.x) / (v2.y - v0.y);
 
 	float zLDetal = (1/v1.z - 1/v0.z) / (v1.y - v0.y); // z是按1/z线性变化的
-	float zRDetal = (1/v2.z - 1/v0.z) / (v1.y - v0.y);
+	float zRDetal = (1/v2.z - 1/v0.z) / (v2.y - v0.y);
 
 	float uLDetal = (uv1.x / v1.z - uv0.x / v0.z) / (v1.y - v0.y);
 	float uRDetal =  (uv2.x / v2.z - uv0.x / v0.z) / (v2.y - v0.y);
@@ -927,7 +938,7 @@ void CGraphics::RasterizePhongFaceUp(const Vector4& v0, const Vector4& v1, const
 		zL = (y - v0.y) * zLDetal + 1 / v0.z;
 		zR = (y - v0.y) * zRDetal + 1 / v0.z;
 
-		int divWidth = EqualFloat(xL - xR, 0.0) ? 1.0 : 1/(xL - xR); // 避免分母为零
+		int divWidth = EqualFloat(xR - xL, 0.0) ? 1.0f : 1.0f/(xR - xL); // 避免分母为零
 		float zStep = (zR - zL) / divWidth;
 
 		// uv
@@ -938,7 +949,7 @@ void CGraphics::RasterizePhongFaceUp(const Vector4& v0, const Vector4& v1, const
 		float vR = (y - v0.y) * vRDetal + uv0.y / v0.z;
 
 		float uStep = (uR - uL) / divWidth;
-		float vStep = (vR - vR) / divWidth;
+		float vStep = (vR - vL) / divWidth;
 
 		float u = uL, v = vL;
 		CColor texC(255, 255, 255);
@@ -1014,8 +1025,8 @@ void CGraphics::RasterizePhongFaceDown(const Vector4& v0, const Vector4& v1, con
 		float uLDetal = (uv0.x / v0.z - uv2.x / v2.z) / (v2.y - v0.y);
 		float uRDetal =  (uv1.x / v1.z - uv2.x / v2.z) / (v2.y - v1.y);
 
-		float vLDetal = (uv0.y / v0.z - uv2.y / v0.z) / (v2.y - v0.y);
-		float vRDetal =  (uv1.y / v1.z - uv2.y / v0.z) / (v2.y - v1.y);
+		float vLDetal = (uv0.y / v0.z - uv2.y / v2.z) / (v2.y - v0.y);
+		float vRDetal =  (uv1.y / v1.z - uv2.y / v2.z) / (v2.y - v1.y);
 
 		// 法线插值
 		Vector4 nLDetal = (n0 - n2) / (v2.y - v0.y);
@@ -1043,7 +1054,7 @@ void CGraphics::RasterizePhongFaceDown(const Vector4& v0, const Vector4& v1, con
 			zL = (y - v0.y) * zLDetal + 1 / v0.z;
 			zR = (y - v1.y) * zRDetal + 1 / v1.z;
 
-			int divWidth = EqualFloat(xL - xR, 0.0) ? 1.0 : 1/(xL - xR); // 避免分母为零
+			int divWidth = EqualFloat(xR - xL, 0.0) ? 1.0f : 1.0f/(xR - xL); // 避免分母为零
 			float zStep = (zR - zL) / divWidth;
 
 			// uv

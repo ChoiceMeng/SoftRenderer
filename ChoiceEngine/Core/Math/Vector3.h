@@ -16,16 +16,16 @@ namespace CE
 		class _declspec(dllexport)  Vector3
 		{
 		public:
-			Vector3()
+			Vector3() : x(0.0f), y(0.0f), z(0.0f)
 			{
 
 			}
 
-			Vector3(float x, float y, float z)
+			Vector3(float x1, float y1, float z1)
 			{
-				x = x;
-				y = y;
-				z = z;
+				x = x1;
+				y = y1;
+				z = z1;
 			}
 
 			inline Vector3 operator*(const float nScale) const

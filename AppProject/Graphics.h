@@ -50,6 +50,7 @@ public:
  	void	DrawPrimitives();
 // 
  	void	SetCamera(CCamera* camera);
+	CCamera* GetCamera(){return m_pCamera;}
 	void	SetTransform(ETS_Transform space, const Matrix4& mat);
 	void	SetTexture(/*int index, */CTexture* texture);
 	void	SetBumpTexture(CTexture* bumpTex);

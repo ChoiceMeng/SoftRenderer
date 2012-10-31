@@ -7,7 +7,6 @@ namespace CE
 		class CColor
 		{
 		public:
-			CColor(){}
 			CColor(int Color)
 			{
 				r = (unsigned char)(Color & 0xff0000 >> 16);
@@ -16,7 +15,7 @@ namespace CE
 				a = 255;
 			}
 
-			CColor(unsigned char cr, unsigned char cg, unsigned char cb, unsigned char ca = 255) : r(cr), g(cg), b(cb), a(ca)
+			CColor(unsigned char cr = 0, unsigned char cg = 0, unsigned char cb = 0, unsigned char ca = 255) : r(cr), g(cg), b(cb), a(ca)
 			{
 
 			}
@@ -33,10 +32,10 @@ namespace CE
 
 			CColor operator*(const CColor& Color) const
 			{
-				int cr = Min(r*Color.r, 255);
-				int cg = Min(g*Color.g, 255);
-				int cb = Min(b*Color.b, 255);
-				int ca = Min(a*Color.a, 255);
+				int cr = r * Color.r >> 8;
+				int cg = g * Color.g >> 8;
+				int cb = b * Color.b >> 8;
+				int ca = a * Color.a >> 8;
 
 				return CColor(cr, cg, cb, ca);
 			}
@@ -53,9 +52,9 @@ namespace CE
 
 			CColor& operator*=(float scale)
 			{
-				r = Min(r*scale, 255);
-				g = Min(g*scale, 255);
-				b = Min(b*scale, 255);
+				r = (int)Min(r*scale, 255.0f);
+				g = (int)Min(g*scale, 255.0f);
+				b = (int)Min(b*scale, 255.0f);
 
 				return *this;
 			}
