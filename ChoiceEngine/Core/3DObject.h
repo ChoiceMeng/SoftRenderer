@@ -1,7 +1,6 @@
 #pragma once
 #include "../Model/3DS.H"
-#include "Geometry.h"
-using namespace MAXOBJ;
+// #include "Geometry.h"
 
 namespace CE
 {
@@ -15,8 +14,8 @@ namespace CE
 		public:
 			int m_nVetexCount;
 			int m_nFaceCount;
-			CVertex* m_pVertexList;
-			CFace* m_pFace;
+			class CVertex* m_pVertexList;
+			struct CFace* m_pFace;
 		};
 	}
 }

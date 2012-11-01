@@ -269,15 +269,17 @@ void CWindowBase::OnPaint(HDC hdc)
 
 	DrawInfos();
 	
+	m_pGraphics->mVisibleFaceNum = 0;
 	m_pGraphics->FlipBuffer(hdc);
 }
 
 void CWindowBase::DrawInfos()
 {
 // 	int i = mGraphics->GetVisibleFaceNum();
-// 	std::string visibleFace = IntToString((float)mGraphics->GetVisibleFaceNum());
-// 	std::string totalFace	= IntToString((float)mGraphics->GetTotalFaceNum());
-// 	std::string faces = "  Faces [Visble/Total] - " + visibleFace + " / " + totalFace;						
+ 	std::string visibleFace = IntToString((float)m_pGraphics->mVisibleFaceNum);
+ //	std::string totalFace	= IntToString((float)m_pGraphics->GetTotalFaceNum());
+ 	std::string faces = "  Faces [Visble/Total] - " + visibleFace;// + " / " + totalFace;
+	m_pGraphics->DrawString(faces, 10, 35, CColor(0, 255, 0));
 // 
 // 	std::string visibleFace = IntToString((float)mGraphics->GetVisibleFaceNum());
 	std::string szCameraPos = "CameraPos:" +  IntToString((int)(m_pGraphics->GetCamera()->m_WorldPos.x)) + "," +  IntToString((int)(m_pGraphics->GetCamera()->m_WorldPos.y)) + "," +  IntToString((int)(m_pGraphics->GetCamera()->m_WorldPos.z));

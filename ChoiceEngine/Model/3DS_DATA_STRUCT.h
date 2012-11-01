@@ -6,7 +6,6 @@ download from CSDN ...
 #pragma once
  #include <math.h>
  #include <vector>
-#include <map>
  using namespace std;
 namespace MAXOBJ
 {
@@ -100,18 +99,18 @@ public:
 };
 
 // face structure
-struct _declspec(dllexport) tFace
+struct tFace
 {
 	int vertIndex[3];			// vertex index
 	int coordIndex[3];			// texture coordinate index
 };
 
 //  material information structure
-struct _declspec(dllexport) tMaterialInfo
+struct tMaterialInfo
 {
 	char			strName[255];			// texture name
 	char			strFile[255];			// if exist texture,it is texture name
-	unsigned char   CColor[3];				// object RGB CColor
+	unsigned char   color[3];				// object RGB color
 	int				texureId;				// texture ID
 	float			uTile;					// u repeat
 	float			vTile;					// v repeat
@@ -120,7 +119,7 @@ struct _declspec(dllexport) tMaterialInfo
 } ;
 
 //  object information structure
-struct _declspec(dllexport) t3DObject 
+struct t3DObject 
 {
 	t3DObject();
 	~t3DObject();
@@ -137,7 +136,7 @@ struct _declspec(dllexport) t3DObject
 };
 
 //  model information structure
-struct _declspec(dllexport) t3DModel 
+struct t3DModel 
 {
 	t3DModel()
 	{

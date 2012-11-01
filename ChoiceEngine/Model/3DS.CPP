@@ -215,7 +215,7 @@ void CLoad3DS::ProcessNextObjectChunk(t3DModel *pModel, t3DObject *pObject, tChu
 
 		case OBJECT_MATERIAL:				//read object material information
 			
-			// the chunk contain object material name, can be a CColor, can be a texture. and texture face
+			// the chunk contain object material name, can be a color, can be a texture. and texture face
 			// read material object name 
 			ReadObjectMaterial(pModel, pObject, m_CurrentChunk);			
 			break;
@@ -262,7 +262,7 @@ void CLoad3DS::ProcessNextMaterialChunk(t3DModel *pModel, tChunk *pPreviousChunk
 			m_CurrentChunk->bytesRead += fread(pModel->pMaterials[pModel->numOfMaterials - 1].strName, 1, m_CurrentChunk->length - m_CurrentChunk->bytesRead, m_FilePointer);
 			break;
 
-		case MATDIFFUSE:						// read object's CColor
+		case MATDIFFUSE:						// read object's color
 			ReadColorChunk(&(pModel->pMaterials[pModel->numOfMaterials - 1]), m_CurrentChunk);
 			break;
 		
@@ -324,15 +324,15 @@ int CLoad3DS::GetString(char *pBuffer)
 }
 
 
-//  read RGB CColor
+//  read RGB color
 void CLoad3DS::ReadColorChunk(tMaterialInfo *pMaterial, tChunk *pChunk)
 {
-	// read CColor chunk information
+	// read color chunk information
 	tChunk *m_TempChunk = new tChunk;
 	ReadChunk(m_TempChunk);
 
-	// read in RGB CColor
-	m_TempChunk->bytesRead += fread(pMaterial->CColor, 1, m_TempChunk->length - m_TempChunk->bytesRead, m_FilePointer);
+	// read in RGB color
+	m_TempChunk->bytesRead += fread(pMaterial->color, 1, m_TempChunk->length - m_TempChunk->bytesRead, m_FilePointer);
 
 	// add read in byte count
 	pChunk->bytesRead += m_TempChunk->bytesRead;
@@ -421,7 +421,7 @@ void CLoad3DS::ReadVertices(t3DObject *pObject, tChunk *pPreviousChunk)
 void CLoad3DS::ReadObjectMaterial(t3DModel *pModel, t3DObject *pObject, tChunk *pPreviousChunk)
 {
 	char strMaterial[255] = {0};			// use for saving material name
-	// material or CColor, or object texture, or luminance,or radiation information
+	// material or color, or object texture, or luminance,or radiation information
 
 	// read current object material name
 	pPreviousChunk->bytesRead += GetString(strMaterial);
@@ -450,13 +450,7 @@ void CLoad3DS::ReadObjectMaterial(t3DModel *pModel, t3DObject *pObject, tChunk *
 	}
 	fseek(m_FilePointer, (long)(pPreviousChunk->length - pPreviousChunk->bytesRead), SEEK_CUR);
 	pPreviousChunk->bytesRead = pPreviousChunk->length;
-}
-
-long GetHash(const CVector3& pos)
-{
-	return pos.x * 10000000 + pos.y * 10000000 + pos.z * 100000;
-}
-
+}			
 //  Compute vertex normal
 void CLoad3DS::ComputeNormals(t3DModel *pModel)
 {
@@ -477,30 +471,9 @@ void CLoad3DS::ComputeNormals(t3DModel *pModel)
 		CVector3 *pTempNormals	= new CVector3 [pObject->numOfFaces];
 		pObject->pNormals		= new CVector3 [pObject->numOfVerts];
 
-		map<long, int> Vertexs;
-		for(int i=0; i < pObject->numOfFaces; i++)
-		{	
-			tFace& face = pObject->pFaces[i];
-			face.coordIndex[0] = face.vertIndex[0];
-			face.coordIndex[1] = face.vertIndex[1];
-			face.coordIndex[2] = face.vertIndex[2];
-
-			Vertexs.insert(make_pair(GetHash(pObject->pVerts[face.vertIndex[0]]), face.vertIndex[0]));
-			Vertexs.insert(make_pair(GetHash(pObject->pVerts[face.vertIndex[1]]), face.vertIndex[1]));
-			Vertexs.insert(make_pair(GetHash(pObject->pVerts[face.vertIndex[2]]), face.vertIndex[2]));
-		}
-
-		for(int i=0; i < pObject->numOfFaces; i++)
-		{	
-			tFace& face = pObject->pFaces[i];
-			face.vertIndex[0] = Vertexs[GetHash(pObject->pVerts[face.vertIndex[0]])];
-			face.vertIndex[1] = Vertexs[GetHash(pObject->pVerts[face.vertIndex[1]])];
-			face.vertIndex[2] = Vertexs[GetHash(pObject->pVerts[face.vertIndex[2]])];
-		}
-
 		// visit all object faces 
 		for(int i=0; i < pObject->numOfFaces; i++)
-		{	
+		{												
 			vPoly[0] = pObject->pVerts[pObject->pFaces[i].vertIndex[0]];
 			vPoly[1] = pObject->pVerts[pObject->pFaces[i].vertIndex[1]];
 			vPoly[2] = pObject->pVerts[pObject->pFaces[i].vertIndex[2]];

@@ -112,7 +112,7 @@ namespace CE
 				return *this;
 			}
 
-			inline Vector4 operator/=(int nScale)
+			inline Vector4 operator/=(float nScale)
 			{
 				x /= nScale;
 				y /= nScale;

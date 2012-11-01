@@ -164,7 +164,11 @@ private:
 	ESHADE_Type				mShadeType;
 	EFill_Type						mFillType;
 	ECull_Type					mCullType;
+
+
 public:
-	C3DObject*			mObject_Sphere;
-	C3DObject*			mObject_Teapot;
+	C3DObject*					mObject_Sphere;
+	C3DObject*					mObject_Teapot;
+
+	int								mVisibleFaceNum;
 };

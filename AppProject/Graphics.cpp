@@ -8,17 +8,53 @@ const static std::string TEX_NAME_2 = "qipan2.bmp";
 
 const static std::string BUMP_TEX_NAME = "fieldstone_n.bmp";
 
+void PrintMatrix(const Matrix4& mat,const string& szMatName)
+{
+	ostringstream buffer;
+	buffer << "------------------" << szMatName << "\n";
+	buffer <<mat.m_fValue[0][0]<<","<<mat.m_fValue[0][1]<<","<<mat.m_fValue[0][2]<<","<<mat.m_fValue[0][3]<<","<<endl;
+	buffer <<mat.m_fValue[1][0]<<","<<mat.m_fValue[1][1]<<","<<mat.m_fValue[1][2]<<","<<mat.m_fValue[1][3]<<","<<endl;
+	buffer <<mat.m_fValue[2][0]<<","<<mat.m_fValue[2][1]<<","<<mat.m_fValue[2][2]<<","<<mat.m_fValue[2][3]<<","<<endl;
+	buffer <<mat.m_fValue[3][0]<<","<<mat.m_fValue[3][1]<<","<<mat.m_fValue[3][2]<<","<<mat.m_fValue[3][3]<<","<<endl;
+
+	string sz = buffer.str();
+	OutputDebugString(sz.c_str());
+}
+
+void PrintVectexInfo(const CVertex& vertex, int nIdx, const string& szTitle = "")
+{
+	ostringstream buffer;
+	buffer<<"----------------------------------------"<<nIdx<<":"<<szTitle<<endl;
+	buffer<<"pos:"<<vertex.mVertex.x<<","<<vertex.mVertex.y<<","<<vertex.mVertex.z<<endl;
+	buffer<<"viewPos:"<<vertex.mVertexView.x<<","<<vertex.mVertexView.y<<","<<vertex.mVertexView.z<<endl;
+	buffer<<"normal:"<<vertex.mNormal.x<<","<<vertex.mNormal.y<<","<<vertex.mNormal.z<<endl;
+
+	string sz = buffer.str();
+	OutputDebugString(sz.c_str());
+}
+
+void PrintVectorInfo(const Vector4& vec, int nIdx, const string& szTitle = "")
+{
+	ostringstream buffer;
+	buffer<<"----------------------------------------"<<nIdx<<":"<<szTitle<<endl;
+	buffer<<"value:"<<vec.x<<","<<vec.y<<","<<vec.z<<","<<vec.w<<endl;
+
+	string sz = buffer.str();
+	OutputDebugString(sz.c_str());
+}
+
 HINSTANCE GHInstance;
 CGraphics::CGraphics(void)
 {
-	mFillType = FILL_SOLID;
+	mFillType = FILL_WIREFRAME;
 	mCullType = CULL_BACK;
-	mShadeType = SHADE_GAUROUD;
+	mShadeType = SHADE_FLAT;
 
 	mFaces			= NULL;
 	mFaceNum		= 0;
 	mVertexs		= NULL;
 	mVertexNum		= 0;
+	mVisibleFaceNum = 0;
 
 	mMatrix[TS_LOCAL]	= IDENTITY;
 	mMatrix[TS_WORLD]	= IDENTITY;
@@ -78,10 +114,10 @@ bool CGraphics::InitGDI( HINSTANCE hinstance )
 	memset(mZBuffer, 0, sizeof(float) * SCREEN_WIDTH * SCREEN_HEIGHT);
 
 	//////////////////////////////////////////////////////////////////////////model data
-	MAXOBJ::t3DModel* model = new MAXOBJ::t3DModel;
+//	MAXOBJ::t3DModel* model = new MAXOBJ::t3DModel;
 	MAXOBJ::CLoad3DS modelLoader;
-	modelLoader.Import3DS(model, GetFilePath(MOD_NAME_1).c_str());
-	mObject_Sphere = new C3DObject(model);
+//	modelLoader.Import3DS(model, GetFilePath(MOD_NAME_1).c_str());
+//	mObject_Sphere = new C3DObject(model);
 
 	MAXOBJ::t3DModel* model1 = new MAXOBJ::t3DModel;
 	modelLoader.Import3DS(model1, GetFilePath(MOD_NAME_2).c_str());
@@ -107,7 +143,7 @@ bool CGraphics::InitGDI( HINSTANCE hinstance )
 	//mTexture2		= new FTexture(GetFilePath(TEX_NAME_2));
 	mNormalTexture	= new CTexture(GetFilePath(BUMP_TEX_NAME));
 
-	mShadeType	= SHADE_GAUROUD;
+	mShadeType	= SHADE_FLAT;
 
 	return true;
 }
@@ -135,26 +171,48 @@ void CGraphics::BuildMatrix()
 		m_pCamera->m_Near, m_pCamera->m_Far);
 	// 屏幕坐标系变换矩阵
 	Matrix4::ScreenMatrix(mMatrix[TS_SCRREN], GetScreenWidth(), GetScreenHeight());
+
+	static int i = 0;
+	if(i == 0)
+	{
+		PrintMatrix(mMatrix[TS_VIEW], "TS_VIEW");
+		PrintMatrix(mMatrix[TS_PROJECT], "TS_PROJECT");
+		PrintMatrix(mMatrix[TS_SCRREN], "TS_SCRREN");
+
+		i = 1;
+	}
 }
 
 void CGraphics::TranslateToViewSpace()
 {
+	static bool bOver = false;
 	Matrix4 mat = mMatrix[TS_LOCAL] * mMatrix[TS_WORLD] * mMatrix[TS_VIEW];
 	for (int i = 0; i < mVertexNum; i++)
 	{
 		CVertex& ver = mVertexs[i];
+
+		if(i < 10 && !bOver)
+		{
+			//PrintVectexInfo(ver, i, "before");
+		}
+
 		// 顶点变换到观察坐标系
 		ver.mVertex = Vec4MulMat4W(ver.mVertex, mat);
 		// 顶点法线
 		ver.mNormal = Vec4MulMat4W(ver.mNormal, mat);
 
 		ver.mVertexView = ver.mVertex;
-	}
 
+		if(i < 10 && !bOver)
+		{
+			//PrintVectexInfo(ver, i, "after");
+		}
+	}
+	bOver = true;
 	// test
-	Matrix4 testMat(1,2,3,4,11,12,13,14,21,22,23,24,31,32,33,34);
-	Matrix4 textOut;
-	float d = testMat.DetM();
+	//Matrix4 testMat(1,2,3,4,11,12,13,14,21,22,23,24,31,32,33,34);
+	//Matrix4 textOut;
+	//float d = testMat.DetM();
 
 	Matrix4 invViewMat;
 	InverseMatrix4(invViewMat, mMatrix[TS_VIEW]);
@@ -167,13 +225,26 @@ void CGraphics::TranslateToViewSpace()
 
 void CGraphics::TranslateToProjectiveSpace()
 {
+	static bool bOver = false;
 	for (int i = 0; i < mVertexNum; i++)
 	{
 		CVertex& ver = mVertexs[i];
+		if(i < 10 && !bOver)
+		{
+			//PrintVectexInfo(ver, i, "before");
+		}
 		ver.mVertex = Vec4MulMat4W(ver.mVertex, mMatrix[TS_PROJECT]);
 		// 执行透视除法, 将齐次坐标变换到笛卡尔积坐标系
 		ver.mVertex /= ver.mVertex.w;
+
+		int a = 1;
+		if(i < 10 && !bOver)
+		{
+		//PrintVectexInfo(ver, i, "after");
+		}
 	}
+
+	bOver = true;
 }
 
 void CGraphics::TranslateToScreenSpace( const CFace& face, Vector4& v0, Vector4& v1, Vector4& v2 )
@@ -192,6 +263,17 @@ void CGraphics::SetVertex( CVertex* vertexs, int vertexNum )
 		mVertexNum = vertexNum;
 	}	
 	memcpy(mVertexs, vertexs, sizeof(CVertex) * vertexNum);
+
+	static bool bOver = false;
+	if(!bOver)
+	{
+		for(int i = 0; i < 10; ++i)
+		{
+			//PrintVectexInfo(vertexs[i], i);
+		}
+
+		bOver = true;
+	}
 }
 
 void CGraphics::SetCamera( CCamera* camera )
@@ -367,12 +449,14 @@ bool IsInScreen(const Vector4& v0, const Vector4& v1, const Vector4& v2, int scr
 
 void CGraphics::ProcessRasterize()
 {
+	static bool bOver = false;
 	// 光栅化
 	for (int i = 0; i < mFaceNum; i++)
 	{
 		CFace& face = mFaces[i];
 		if (!face.isCulled)
 		{
+			mVisibleFaceNum++;
 			// face的顶点已经在TranslateToProjectiveSpace中变换到投影空间了
 			// 将位于透视坐标系下经过透视除法的顶点变换到屏幕坐标系
 			// 这里不对原始数据进行修改, 而是用他们的拷贝
@@ -398,6 +482,14 @@ void CGraphics::ProcessRasterize()
 			CColor c1 = face.mColor[1];
 			CColor c2 = face.mColor[2];
 
+			if(!bOver)
+			{
+				PrintVectexInfo(mVertexs[face.mVertIndex[0]], i);
+				PrintVectexInfo(mVertexs[face.mVertIndex[1]], i);
+				PrintVectexInfo(mVertexs[face.mVertIndex[2]], i);
+
+				bOver = true;
+			}
 			RasterizeFace(i, v0, v1, v2, v0V, v1V, v2V, n0, n1, n2, uv0, uv1, uv2, c0, c1, c2);
 		}
 	}
@@ -515,6 +607,7 @@ void CGraphics::RasterizeFlatFaceUp(const Vector4& v0, const Vector4& v1, const 
 	const Vector4& uv0, const Vector4& uv1, const Vector4& uv2,
 	const CColor& c0, const CColor& c1, const CColor& c2)
 {
+	
 	CTexture* tex = mTextures;
 
 	// 线性插值
@@ -543,8 +636,8 @@ void CGraphics::RasterizeFlatFaceUp(const Vector4& v0, const Vector4& v1, const 
 		zL = (y - v0.y) * zLDetal + 1 / v0.z;
 		zR = (y - v0.y) * zRDetal + 1 / v0.z;
 
-		int divWidth = EqualFloat(xR - xL, 0.0) ? 1.0f : 1.0f/(xR - xL); // 避免分母为零
-		float zStep = (zR - zL) / divWidth;
+		int divWidth = EqualFloat(xR - xL, 0.0f) ? 1.0f : 1.0f/(xR - xL); // 避免分母为零
+		float zStep = (zR - zL) * divWidth;
 
 		// uv
 		float uL = (y - v0.y) * uLDetal + uv0.x / v0.z;
@@ -553,8 +646,8 @@ void CGraphics::RasterizeFlatFaceUp(const Vector4& v0, const Vector4& v1, const 
 		float uR = (y - v0.y) * uRDetal + uv0.x / v0.z;
 		float vR = (y - v0.y) * vRDetal + uv0.y / v0.z;
 
-		float uStep = (uR - uL) / divWidth;
-		float vStep = (vR - vR) / divWidth;
+		float uStep = (uR - uL) * divWidth;
+		float vStep = (vR - vL) * divWidth;
 
 		float u = uL, v = vL;
 		CColor texC(255, 255, 255);
@@ -621,8 +714,8 @@ void CGraphics::RasterizeFlatFaceDown(const Vector4& v0, const Vector4& v1, cons
 		zL = (y - v0.y) * zLDetal + 1 / v0.z;
 		zR = (y - v1.y) * zRDetal + 1 / v1.z;
 
-		int divWidth = EqualFloat(xR - xL, 0.0) ? 1.0f : 1.0f/(xR - xL); // 避免分母为零
-		float zStep = (zR - zL) / divWidth;
+		int divWidth = EqualFloat(xR - xL, 0.0f) ? 1.0f : 1.0f/(xR - xL); // 避免分母为零
+		float zStep = (zR - zL) * divWidth;
 
 		// uv
 		float uL = (y - v0.y) * uLDetal + uv0.x / v0.z;
@@ -631,8 +724,8 @@ void CGraphics::RasterizeFlatFaceDown(const Vector4& v0, const Vector4& v1, cons
 		float uR = (y - v1.y) * uRDetal + uv1.x / v1.z;
 		float vR = (y - v1.y) * vRDetal + uv1.y / v1.z;
 
-		float uStep = (uR - uL) / divWidth;
-		float vStep = (vR - vR) / divWidth;
+		float uStep = (uR - uL) * divWidth;
+		float vStep = (vR - vL) * divWidth;
 
 		float u = uL, v = vL;
 		CColor texC(255, 255, 255);
@@ -709,8 +802,8 @@ void CGraphics::RasterizeGouraudFaceUp(const Vector4& v0, const Vector4& v1, con
 		zL = (y - v0.y) * zLDetal + 1 / v0.z;
 		zR = (y - v0.y) * zRDetal + 1 / v0.z;
 
-		int divWidth = EqualFloat(xR - xL, 0.0) ? 1.0f : 1.0f/(xR - xL); // 避免分母为零
-		float zStep = (zR - zL) / divWidth;
+		int divWidth = EqualFloat(xR - xL, 0.0f) ? 1.0f : 1.0f/(xR - xL); // 避免分母为零
+		float zStep = (zR - zL) * divWidth;
 
 		// x方向color插值
 		unsigned char crL = (y - v0.y) * rLDetal + c0.r;
@@ -733,8 +826,8 @@ void CGraphics::RasterizeGouraudFaceUp(const Vector4& v0, const Vector4& v1, con
 		float uR = (y - v0.y) * uRDetal + uv0.x / v0.z;
 		float vR = (y - v0.y) * vRDetal + uv0.y / v0.z;
 
-		float uStep = (uR - uL) / divWidth;
-		float vStep = (vR - vL) / divWidth;
+		float uStep = (uR - uL) * divWidth;
+		float vStep = (vR - vL) * divWidth;
 
 		float u = uL, v = vL;
 		CColor texC(255, 255, 255);
@@ -821,8 +914,8 @@ void CGraphics::RasterizeGouraudFaceDown(const Vector4& v0, const Vector4& v1, c
 		zL = (y - v0.y) * zLDetal + 1 / v0.z;
 		zR = (y - v1.y) * zRDetal + 1 / v1.z;
 
-		int divWidth = EqualFloat(xR - xL, 0.0) ? 1.0f : 1.0f/(xR - xL); // 避免分母为零
-		float zStep = (zR - zL) / divWidth;
+		int divWidth = EqualFloat(xR - xL, 0.0f) ? 1.0f : 1.0f/(xR - xL); // 避免分母为零
+		float zStep = (zR - zL) * divWidth;
 
 		// x方向color插值
 		unsigned char crL = (y - v0.y) * rLDetal + c0.r;
@@ -845,8 +938,8 @@ void CGraphics::RasterizeGouraudFaceDown(const Vector4& v0, const Vector4& v1, c
 		float uR = (y - v1.y) * uRDetal + uv1.x / v1.z;
 		float vR = (y - v1.y) * vRDetal + uv1.y / v1.z;
 
-		float uStep = (uR - uL) / divWidth;
-		float vStep = (vR - vL) / divWidth;
+		float uStep = (uR - uL) * divWidth;
+		float vStep = (vR - vL) * divWidth;
 
 		float u = uL, v = vL;
 		CColor texC(255, 255, 255);
@@ -938,8 +1031,8 @@ void CGraphics::RasterizePhongFaceUp(const Vector4& v0, const Vector4& v1, const
 		zL = (y - v0.y) * zLDetal + 1 / v0.z;
 		zR = (y - v0.y) * zRDetal + 1 / v0.z;
 
-		int divWidth = EqualFloat(xR - xL, 0.0) ? 1.0f : 1.0f/(xR - xL); // 避免分母为零
-		float zStep = (zR - zL) / divWidth;
+		int divWidth = EqualFloat(xR - xL, 0.0f) ? 1.0f : 1.0f/(xR - xL); // 避免分母为零
+		float zStep = (zR - zL) * divWidth;
 
 		// uv
 		float uL = (y - v0.y) * uLDetal + uv0.x / v0.z;
@@ -948,8 +1041,8 @@ void CGraphics::RasterizePhongFaceUp(const Vector4& v0, const Vector4& v1, const
 		float uR = (y - v0.y) * uRDetal + uv0.x / v0.z;
 		float vR = (y - v0.y) * vRDetal + uv0.y / v0.z;
 
-		float uStep = (uR - uL) / divWidth;
-		float vStep = (vR - vL) / divWidth;
+		float uStep = (uR - uL) * divWidth;
+		float vStep = (vR - vL) * divWidth;
 
 		float u = uL, v = vL;
 		CColor texC(255, 255, 255);
@@ -1054,8 +1147,8 @@ void CGraphics::RasterizePhongFaceDown(const Vector4& v0, const Vector4& v1, con
 			zL = (y - v0.y) * zLDetal + 1 / v0.z;
 			zR = (y - v1.y) * zRDetal + 1 / v1.z;
 
-			int divWidth = EqualFloat(xR - xL, 0.0) ? 1.0f : 1.0f/(xR - xL); // 避免分母为零
-			float zStep = (zR - zL) / divWidth;
+			int divWidth = EqualFloat(xR - xL, 0.0f) ? 1.0f : 1.0f/(xR - xL); // 避免分母为零
+			float zStep = (zR - zL) * divWidth;
 
 			// uv
 			float uL = (y - v0.y) * uLDetal + uv0.x / v0.z;
@@ -1064,8 +1157,8 @@ void CGraphics::RasterizePhongFaceDown(const Vector4& v0, const Vector4& v1, con
 			float uR = (y - v0.y) * uRDetal + uv0.x / v0.z;
 			float vR = (y - v1.y) * vRDetal + uv1.y / v1.z;
 
-			float uStep = (uR - uL) / divWidth;
-			float vStep = (vR - vR) / divWidth;
+			float uStep = (uR - uL) * divWidth;
+			float vStep = (vR - vR) * divWidth;
 
 			float u = uL, v = vL;
 			CColor texC(255, 255, 255);
@@ -1312,7 +1405,7 @@ void CGraphics::ProcessCull()
 		Vector4 faceNormal = v0.CrossVector(v1) * factor;
 		float result = faceNormal.DotVector(-mVertexs[face.mVertIndex[1]].mVertexView/*摄像机到顶点的向量*/);
 
-		if(result < 0) // 夹角大于90度
+		if(result < 0.0f) // 夹角大于90度
 			face.isCulled = true;
 	}
 }

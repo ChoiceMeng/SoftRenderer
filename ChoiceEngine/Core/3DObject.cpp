@@ -1,5 +1,5 @@
 #include "3DObject.h"
-using namespace CE::Core;
+#include "Geometry.h"
 using namespace MAXOBJ;
 
 C3DObject::C3DObject(MAXOBJ::t3DModel* model)

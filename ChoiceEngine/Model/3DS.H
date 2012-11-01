@@ -24,7 +24,7 @@ namespace MAXOBJ
 #define OBJECT		  0x4000				// face and vertex information
 
 #define MATNAME       0xA000				// material name
-#define MATDIFFUSE    0xA020				// CColor
+#define MATDIFFUSE    0xA020				// color
 #define MATMAP        0xA200				// new material header
 #define MATMAPFILE    0xA300				// texture file name
 
