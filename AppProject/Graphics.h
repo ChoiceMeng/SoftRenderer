@@ -40,6 +40,8 @@ class CGraphics
 public:
 	CGraphics(void);
 	~CGraphics(void);
+
+	void PrintFloatBuff();
 public:
 	bool InitGDI(HINSTANCE hinstance);
 	void ShutdownGraphicss();

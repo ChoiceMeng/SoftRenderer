@@ -112,7 +112,7 @@ namespace CE
 				return *this;
 			}
 
-			inline Vector4 operator/=(float nScale)
+			inline Vector4 operator/=(float nScale) // mark:必须接受浮点
 			{
 				x /= nScale;
 				y /= nScale;

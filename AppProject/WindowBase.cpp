@@ -269,6 +269,8 @@ void CWindowBase::OnPaint(HDC hdc)
 
 	DrawInfos();
 	
+	m_pGraphics->PrintFloatBuff();
+
 	m_pGraphics->mVisibleFaceNum = 0;
 	m_pGraphics->FlipBuffer(hdc);
 }

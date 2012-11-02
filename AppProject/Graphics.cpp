@@ -8,8 +8,13 @@ const static std::string TEX_NAME_2 = "qipan2.bmp";
 
 const static std::string BUMP_TEX_NAME = "fieldstone_n.bmp";
 
+bool bDebugInfoOpen = false;
+
 void PrintMatrix(const Matrix4& mat,const string& szMatName)
 {
+	if(!bDebugInfoOpen)
+		return;
+
 	ostringstream buffer;
 	buffer << "------------------" << szMatName << "\n";
 	buffer <<mat.m_fValue[0][0]<<","<<mat.m_fValue[0][1]<<","<<mat.m_fValue[0][2]<<","<<mat.m_fValue[0][3]<<","<<endl;
@@ -23,6 +28,9 @@ void PrintMatrix(const Matrix4& mat,const string& szMatName)
 
 void PrintVectexInfo(const CVertex& vertex, int nIdx, const string& szTitle = "")
 {
+	if(!bDebugInfoOpen)
+		return;
+
 	ostringstream buffer;
 	buffer<<"----------------------------------------"<<nIdx<<":"<<szTitle<<endl;
 	buffer<<"pos:"<<vertex.mVertex.x<<","<<vertex.mVertex.y<<","<<vertex.mVertex.z<<endl;
@@ -35,6 +43,9 @@ void PrintVectexInfo(const CVertex& vertex, int nIdx, const string& szTitle = ""
 
 void PrintVectorInfo(const Vector4& vec, int nIdx, const string& szTitle = "")
 {
+	if(!bDebugInfoOpen)
+		return;
+
 	ostringstream buffer;
 	buffer<<"----------------------------------------"<<nIdx<<":"<<szTitle<<endl;
 	buffer<<"value:"<<vec.x<<","<<vec.y<<","<<vec.z<<","<<vec.w<<endl;
@@ -43,12 +54,56 @@ void PrintVectorInfo(const Vector4& vec, int nIdx, const string& szTitle = "")
 	OutputDebugString(sz.c_str());
 }
 
+void PrintColorInfo(const CColor& vec, int nIdx, const string& szTitle = "")
+{
+	if(!bDebugInfoOpen)
+		return;
+
+	ostringstream buffer;
+	buffer<<"----------------------------------------"<<nIdx<<":"<<szTitle<<endl;
+	buffer<<"value:"<<(int)vec.r<<","<<(int)vec.g<<","<<(int)vec.b<<","<<(int)vec.a<<endl;
+
+	string sz = buffer.str();
+	OutputDebugString(sz.c_str());
+}
+
+void PrintFloatInfo(const float& f, const string& szTitle)
+{
+	if(!bDebugInfoOpen)
+		return;
+
+	ostringstream buffer;
+	buffer<<"----------------------------------------"<<szTitle<<endl;
+	buffer<<"value:"<<f<<endl;
+
+	string sz = buffer.str();
+	OutputDebugString(sz.c_str());
+}
+
+void CGraphics::PrintFloatBuff()
+{
+	return;
+
+	ostringstream buffer;
+	for(int i = 0; i < SCREEN_HEIGHT; ++i)
+	{
+		for(int j = 0; j < SCREEN_WIDTH; ++j)
+		{
+			buffer << (float)mZBuffer[i * SCREEN_WIDTH + j]<<",";
+		}
+		buffer<<endl;
+	}
+
+	string sz = buffer.str();
+	OutputDebugString(sz.c_str());
+}
+
 HINSTANCE GHInstance;
 CGraphics::CGraphics(void)
 {
-	mFillType = FILL_WIREFRAME;
-	mCullType = CULL_BACK;
-	mShadeType = SHADE_FLAT;
+// 	mFillType = FILL_WIREFRAME;
+// 	mCullType = CULL_BACK;
+	// mShadeType = SHADE_FLAT;
 
 	mFaces			= NULL;
 	mFaceNum		= 0;
@@ -143,7 +198,9 @@ bool CGraphics::InitGDI( HINSTANCE hinstance )
 	//mTexture2		= new FTexture(GetFilePath(TEX_NAME_2));
 	mNormalTexture	= new CTexture(GetFilePath(BUMP_TEX_NAME));
 
-	mShadeType	= SHADE_FLAT;
+	mFillType = FILL_SOLID;
+	mCullType = CULL_BACK;
+	mShadeType	= SHADE_GAUROUD;
 
 	return true;
 }
@@ -303,6 +360,8 @@ void CGraphics::SetLight( /*int index, */CLight* light )
 const static float DARK_COLOR_FACTOR = 0.05f;
 void CGraphics::ProcessLight()
 {
+	return;
+
 	CLight* pLight = mLights;
 	if(pLight != NULL && pLight->m_bEnable)
 	{
@@ -482,14 +541,14 @@ void CGraphics::ProcessRasterize()
 			CColor c1 = face.mColor[1];
 			CColor c2 = face.mColor[2];
 
-			if(!bOver)
-			{
-				PrintVectexInfo(mVertexs[face.mVertIndex[0]], i);
-				PrintVectexInfo(mVertexs[face.mVertIndex[1]], i);
-				PrintVectexInfo(mVertexs[face.mVertIndex[2]], i);
-
-				bOver = true;
-			}
+// 			if(!bOver)
+// 			{
+// 				PrintVectexInfo(mVertexs[face.mVertIndex[0]], i);
+// 				PrintVectexInfo(mVertexs[face.mVertIndex[1]], i);
+// 				PrintVectexInfo(mVertexs[face.mVertIndex[2]], i);
+// 
+// 				bOver = true;
+// 			}
 			RasterizeFace(i, v0, v1, v2, v0V, v1V, v2V, n0, n1, n2, uv0, uv1, uv2, c0, c1, c2);
 		}
 	}
@@ -538,6 +597,8 @@ void CGraphics::RasterizeFace(int faceIndex,
 	color.g = (unsigned char)g;
 	color.b = (unsigned char)b;
 
+	if(faceIndex == 53)
+		bDebugInfoOpen = true;
 	if(vNew1.x > v1.x)
 	{
 		// 左三角形
@@ -607,7 +668,22 @@ void CGraphics::RasterizeFlatFaceUp(const Vector4& v0, const Vector4& v1, const 
 	const Vector4& uv0, const Vector4& uv1, const Vector4& uv2,
 	const CColor& c0, const CColor& c1, const CColor& c2)
 {
-	
+	/*static bool bFirst = true;
+	if(bFirst)
+	{
+		PrintVectorInfo(v0, 1, "v0");
+		PrintVectorInfo(v1, 1, "v1");
+		PrintVectorInfo(v2, 1, "v2");
+		PrintVectorInfo(uv0, 1, "uv0");
+		PrintVectorInfo(uv1, 1, "uv1");
+		PrintVectorInfo(uv2, 1, "uv2");
+		PrintColorInfo(c0, 1, "c0");
+		PrintColorInfo(c1, 1, "c1");
+		PrintColorInfo(c2, 1, "c2");
+
+		bFirst = false;
+	}*/
+
 	CTexture* tex = mTextures;
 
 	// 线性插值
@@ -623,12 +699,29 @@ void CGraphics::RasterizeFlatFaceUp(const Vector4& v0, const Vector4& v1, const 
 	float vLDetal = (uv1.y / v1.z - uv0.y / v0.z) / (v1.y - v0.y);
 	float vRDetal =  (uv2.y / v2.z - uv0.y / v0.z) / (v2.y - v0.y);
 
+/*	static bool bFirst = true;
+	if(bFirst)
+	{
+		PrintFloatInfo(xLDetal, "xLDetal");
+		PrintFloatInfo(xRDetal, "xRDetal");
+		PrintFloatInfo(zLDetal, "zLDetal");
+		PrintFloatInfo(zRDetal, "zRDetal");
+		PrintFloatInfo(uLDetal, "uLDetal");
+		PrintFloatInfo(uRDetal, "uRDetal");
+		PrintFloatInfo(vLDetal, "vLDetal");
+		PrintFloatInfo(vRDetal, "vRDetal");
+
+		bFirst = false;
+	}*/
+
+	int nZTest = 0;
 	for(float y = v0.y; y < v2.y; ++y)
 	{
 		// 避免浮点误差
-		y = (int)(y+0.5f); 
+		//y = (int)(y+0.5f); 
 
-		int xL, xR;
+		// int xL, xR; // debug:warning:光栅化部分的所有值避免使用int，很多浮点操作
+		float xL, xR;
 		xL = (y - v0.y) * xLDetal + v0.x;
 		xR = (y - v0.y) * xRDetal + v0.x;
 
@@ -636,8 +729,10 @@ void CGraphics::RasterizeFlatFaceUp(const Vector4& v0, const Vector4& v1, const 
 		zL = (y - v0.y) * zLDetal + 1 / v0.z;
 		zR = (y - v0.y) * zRDetal + 1 / v0.z;
 
-		int divWidth = EqualFloat(xR - xL, 0.0f) ? 1.0f : 1.0f/(xR - xL); // 避免分母为零
-		float zStep = (zR - zL) * divWidth;
+		//int divWidth = EqualFloat(xR - xL, 0.0f) ? 1.0f : 1.0f/(xR - xL); // 避免分母为零
+		// debug:warning:光栅化部分的所有值避免使用int，很多浮点操作
+		float divWidth = EqualFloat(xR - xL, 0.0f) ? 1.0f : 1.0f/(xR - xL); // 避免分母为零
+		float zStep = (zR - zL) /(xR - xL);
 
 		// uv
 		float uL = (y - v0.y) * uLDetal + uv0.x / v0.z;
@@ -646,13 +741,27 @@ void CGraphics::RasterizeFlatFaceUp(const Vector4& v0, const Vector4& v1, const 
 		float uR = (y - v0.y) * uRDetal + uv0.x / v0.z;
 		float vR = (y - v0.y) * vRDetal + uv0.y / v0.z;
 
-		float uStep = (uR - uL) * divWidth;
-		float vStep = (vR - vL) * divWidth;
+		float uStep = (uR - uL);
+		float vStep = (vR - vL) /(xR - xL);
 
 		float u = uL, v = vL;
 		CColor texC(255, 255, 255);
 
-		for(float x = xL, z = zL; x < xR; x++, z += zStep, u += uStep, v += vStep)
+		/*PrintFloatInfo(y, "y");
+		PrintFloatInfo(xL, "xL");
+		PrintFloatInfo(xR, "xR");
+		PrintFloatInfo(zL, "zL");
+		PrintFloatInfo(zR, "zR");
+		PrintFloatInfo((xR - xL), "divWidth");
+		PrintFloatInfo(zStep, "zStep");
+		PrintFloatInfo(uL, "uL");
+		PrintFloatInfo(uR, "uR");
+		PrintFloatInfo(vL, "vL");
+		PrintFloatInfo(vR, "vR");
+		PrintFloatInfo(uStep, "uStep");
+		PrintFloatInfo(vStep, "vStep");*/
+
+		for(float x = xL, z = zL; x <= xR; x++, z += zStep, u += uStep, v += vStep)
 		{
 			x = (int)(x + 0.5f);
 
@@ -662,6 +771,7 @@ void CGraphics::RasterizeFlatFaceUp(const Vector4& v0, const Vector4& v1, const 
 			if (!CheckZ(x, y, z))
 				continue;
 
+			nZTest++;
 			if(tex)
 			{
 				texC = tex->GetPixelUV(u / z, v / z);
@@ -669,7 +779,7 @@ void CGraphics::RasterizeFlatFaceUp(const Vector4& v0, const Vector4& v1, const 
 
 			if(mFillType == FILL_WIREFRAME)
 			{
-				if(x > 0 && y > 0 && (x < xL + 1) || (x > xR - 1))
+				if(x >= 0 && y >= 0 && (x < xL + 1) || (x > xR - 1))
 					SetPixel(x, y, c0);	// 固定着色，都使用顶点颜色
 			}else{
 				SetPixel(x, y, c0*texC);
@@ -698,15 +808,32 @@ void CGraphics::RasterizeFlatFaceDown(const Vector4& v0, const Vector4& v1, cons
 	float uLDetal = (uv2.x / v2.z - uv0.x / v0.z) / (v2.y - v0.y);
 	float uRDetal =  (uv2.x / v2.z - uv1.x / v1.z) / (v2.y - v1.y);
 
-	float vLDetal = (uv2.y / v2.z - uv1.y / v0.z) / (v2.y - v1.y);
-	float vRDetal =  (uv2.y / v2.z - uv1.y / v0.z) / (v2.y - v1.y);
+	float vLDetal = (uv2.y / v2.z - uv0.y / v0.z) / (v2.y - v0.y);
+	float vRDetal =  (uv2.y / v2.z - uv1.y / v1.z) / (v2.y - v1.y);
+
+	/*static bool bFirst = true;
+	if(bFirst)
+	{
+		PrintFloatInfo(xLDetal, "xLDetal");
+		PrintFloatInfo(xRDetal, "xRDetal");
+		PrintFloatInfo(zLDetal, "zLDetal");
+		PrintFloatInfo(zRDetal, "zRDetal");
+		PrintFloatInfo(uLDetal, "uLDetal");
+		PrintFloatInfo(uRDetal, "uRDetal");
+		PrintFloatInfo(vLDetal, "vLDetal");
+		PrintFloatInfo(vRDetal, "vRDetal");
+
+		bFirst = false;
+	}*/
 
 	for(float y = v0.y; y < v2.y; ++y)
 	{
 		// 避免浮点误差
-		y = (int)(y+0.5f); 
+		//y = (int)(y+0.5f); 
 
-		int xL, xR;
+		//int xL, xR; 
+		// debug:warning:光栅化部分的所有值避免使用int，很多浮点操作
+		float xL, xR;
 		xL = (y - v0.y) * xLDetal + v0.x;
 		xR = (y - v1.y) * xRDetal + v1.x;
 
@@ -714,8 +841,10 @@ void CGraphics::RasterizeFlatFaceDown(const Vector4& v0, const Vector4& v1, cons
 		zL = (y - v0.y) * zLDetal + 1 / v0.z;
 		zR = (y - v1.y) * zRDetal + 1 / v1.z;
 
-		int divWidth = EqualFloat(xR - xL, 0.0f) ? 1.0f : 1.0f/(xR - xL); // 避免分母为零
-		float zStep = (zR - zL) * divWidth;
+		// debug:warning:光栅化部分的所有值避免使用int，很多浮点操作
+		// int divWidth = EqualFloat(xR - xL, 0.0f) ? 1.0f : 1.0f/(xR - xL); // 避免分母为零
+		float divWidth = EqualFloat(xR - xL, 0.0f) ? 1.0f : 1.0f/(xR - xL); // 避免分母为零
+		float zStep = (zR - zL) /(xR - xL);
 
 		// uv
 		float uL = (y - v0.y) * uLDetal + uv0.x / v0.z;
@@ -724,13 +853,27 @@ void CGraphics::RasterizeFlatFaceDown(const Vector4& v0, const Vector4& v1, cons
 		float uR = (y - v1.y) * uRDetal + uv1.x / v1.z;
 		float vR = (y - v1.y) * vRDetal + uv1.y / v1.z;
 
-		float uStep = (uR - uL) * divWidth;
-		float vStep = (vR - vL) * divWidth;
+		float uStep = (uR - uL) /(xR - xL);
+		float vStep = (vR - vL) /(xR - xL);
 
 		float u = uL, v = vL;
 		CColor texC(255, 255, 255);
 
-		for(float x = xL, z = zL; x < xR; x++, z += zStep, u += uStep, v += vStep)
+// 		PrintFloatInfo(y, "y");
+// 		PrintFloatInfo(xL, "xL");
+// 		PrintFloatInfo(xR, "xR");
+// 		PrintFloatInfo(zL, "zL");
+// 		PrintFloatInfo(zR, "zR");
+// 		PrintFloatInfo((xR - xL), "divWidth");
+// 		PrintFloatInfo(zStep, "zStep");
+// 		PrintFloatInfo(uL, "uL");
+// 		PrintFloatInfo(uR, "uR");
+// 		PrintFloatInfo(vL, "vL");
+// 		PrintFloatInfo(vR, "vR");
+// 		PrintFloatInfo(uStep, "uStep");
+// 		PrintFloatInfo(vStep, "vStep");
+
+		for(float x = xL, z = zL; x <= xR; x++, z += zStep, u += uStep, v += vStep)
 		{
 			x = (int)(x + 0.5f);
 
@@ -747,7 +890,7 @@ void CGraphics::RasterizeFlatFaceDown(const Vector4& v0, const Vector4& v1, cons
 
 			if(mFillType == FILL_WIREFRAME)
 			{
-				if(x > 0 && y > 0 && (x < xL + 1) || (x > xR - 1))
+				if(x >= 0 && y >= 0 && (x < xL + 1) || (x > xR - 1))
 					SetPixel(x, y, c0);	// 固定着色，都使用顶点颜色
 			}else{
 				SetPixel(x, y, c0*texC);
@@ -764,14 +907,24 @@ void CGraphics::RasterizeGouraudFaceUp(const Vector4& v0, const Vector4& v1, con
 	const Vector4& uv0, const Vector4& uv1, const Vector4& uv2,
 	const CColor& c0, const CColor& c1, const CColor& c2)
 {
+// 	PrintVectorInfo(v0, 0);
+// 	PrintVectorInfo(v1, 0);
+// 	PrintVectorInfo(v2, 0);
+// 	PrintVectorInfo(uv0, 0);
+// 	PrintVectorInfo(uv1, 0);
+// 	PrintVectorInfo(uv2, 0);
+// 	PrintColorInfo(c0, 0);
+// 	PrintColorInfo(c1, 0);
+// 	PrintColorInfo(c2, 0);
+
 	CTexture* tex = mTextures;
 
 	// 线性插值
 	float xLDetal = (v1.x - v0.x) / (v1.y - v0.y); // Y加1x的增量
 	float xRDetal = (v2.x - v0.x) / (v2.y - v0.y);
 
-	float zLDetal = (1/v1.z - 1/v0.z) / (v1.y - v0.y); // z是按1/z线性变化的
-	float zRDetal = (1/v2.z - 1/v0.z) / (v2.y - v0.y);
+	float zLDetal = (1.0f/v1.z - 1/v0.z) / (v1.y - v0.y); // z是按1/z线性变化的
+	float zRDetal = (1.0f/v2.z - 1/v0.z) / (v2.y - v0.y);
 
 	float uLDetal = (uv1.x / v1.z - uv0.x / v0.z) / (v1.y - v0.y);
 	float uRDetal =  (uv2.x / v2.z - uv0.x / v0.z) / (v2.y - v0.y);
@@ -789,12 +942,14 @@ void CGraphics::RasterizeGouraudFaceUp(const Vector4& v0, const Vector4& v1, con
 	float bLDetal = (c1.b - c0.b) / (v1.y - v0.y);
 	float bRDetal = (c2.b - c0.b) / (v2.y - v0.y);
 
-	for(float y = v0.y; y < v2.y; ++y)
+	for(float y = v0.y; y < v2.y; y += 1.0f)
 	{
 		// 避免浮点误差
-		y = (int)(y+0.5f); 
+		// y = (int)(y+0.5f); 
 
-		int xL, xR;
+		// debug:warning:光栅化部分的所有值避免使用int，很多浮点操作
+		// int xL, xR;
+		float xL, xR;
 		xL = (y - v0.y) * xLDetal + v0.x;
 		xR = (y - v0.y) * xRDetal + v0.x;
 
@@ -802,7 +957,9 @@ void CGraphics::RasterizeGouraudFaceUp(const Vector4& v0, const Vector4& v1, con
 		zL = (y - v0.y) * zLDetal + 1 / v0.z;
 		zR = (y - v0.y) * zRDetal + 1 / v0.z;
 
-		int divWidth = EqualFloat(xR - xL, 0.0f) ? 1.0f : 1.0f/(xR - xL); // 避免分母为零
+		// debug:warning:光栅化部分的所有值避免使用int，很多浮点操作
+		// int divWidth = EqualFloat(xR - xL, 0.0f) ? 1.0f : 1.0f/(xR - xL); // 避免分母为零
+		float divWidth = EqualFloat(xR - xL, 0.0f) ? 1.0f : 1.0f/(xR - xL); // 避免分母为零
 		float zStep = (zR - zL) * divWidth;
 
 		// x方向color插值
@@ -832,10 +989,48 @@ void CGraphics::RasterizeGouraudFaceUp(const Vector4& v0, const Vector4& v1, con
 		float u = uL, v = vL;
 		CColor texC(255, 255, 255);
 
+// 		PrintFloatInfo(y, "y");
+// 		PrintFloatInfo(xL, "xL");
+// 		PrintFloatInfo(xR, "xR");
+// 		PrintFloatInfo(zL, "zL");
+// 		PrintFloatInfo(zR, "zR");
+// 		PrintFloatInfo((xR - xL), "divWidth");
+// 		PrintFloatInfo(zStep, "zStep");
+// 		PrintFloatInfo(uL, "uL");
+// 		PrintFloatInfo(uR, "uR");
+// 		PrintFloatInfo(vL, "vL");
+// 		PrintFloatInfo(vR, "vR");
+// 		PrintFloatInfo(uStep, "uStep");
+// 		PrintFloatInfo(vStep, "vStep");
+// 		PrintFloatInfo(colorRStep, "colorRStep");
+// 		PrintFloatInfo(colorGStep, "colorRStep");
+// 		PrintFloatInfo(colorBStep, "colorRStep");
+
 		float r = crL, g = cgL, b = cbL;
-		for(float x = xL, z = zL; x < xR; x++, z += zStep, u += uStep, v += vStep)
+		for(float x = xL, z = zL; x <= xR; x+= 1.0f, z += zStep, u += uStep, v += vStep)
 		{
 			x = (int)(x + 0.5f);
+
+
+			// 先检查像素是否在屏幕内, 然后检查Zbuffer
+		//	if (x < 0 || y < 0 || x > SCREEN_WIDTH || y > SCREEN_HEIGHT)
+		//		continue;
+			//if (!CheckZ(x, y, z))
+			//	continue;
+
+ 			if(tex)
+ 			{
+ 				texC = tex->GetPixelUV(u / z, v / z);
+ 			}
+
+			if(mFillType == FILL_WIREFRAME)
+			{
+				if(x >= 0 && y >= 0 && (x < xL + 1) || (x > xR - 1))
+					SetPixel(x, y, CColor(r, g, b));
+			}else{
+				SetPixel(x, y, CColor(r, g, b)*texC); // 使用插值颜色填充
+			}
+
 
 			r = crL + (x - xL)*colorRStep;
 			g = cgL + (x - xL)*colorGStep;
@@ -845,25 +1040,6 @@ void CGraphics::RasterizeGouraudFaceUp(const Vector4& v0, const Vector4& v1, con
 			r = Clamp(r, 0.0f, 255.0f);
 			g = Clamp(g, 0.0f, 255.0f);
 			b = Clamp(b, 0.0f, 255.0f);
-
-			// 先检查像素是否在屏幕内, 然后检查Zbuffer
-			if (x <0 || y < 0 || x > SCREEN_WIDTH || y > SCREEN_HEIGHT)
-				continue;
-			if (!CheckZ(x, y, z))
-				continue;
-
-			if(tex)
-			{
-				texC = tex->GetPixelUV(u / z, v / z);
-			}
-
-			if(mFillType == FILL_WIREFRAME)
-			{
-				if(x > 0 && y > 0 && (x < xL + 1) || (x > xR - 1))
-					SetPixel(x, y, CColor(r, g, b));
-			}else{
-				SetPixel(x, y, CColor(r, g, b)*texC); // 使用插值颜色填充
-			}
 		}
 	}
 }
@@ -876,20 +1052,30 @@ void CGraphics::RasterizeGouraudFaceDown(const Vector4& v0, const Vector4& v1, c
 	const Vector4& uv0, const Vector4& uv1, const Vector4& uv2,
 	const CColor& c0, const CColor& c1, const CColor& c2)
 {
+// 	PrintVectorInfo(v0, 0);
+// 	PrintVectorInfo(v1, 0);
+// 	PrintVectorInfo(v2, 0);
+// 	PrintVectorInfo(uv0, 0);
+// 	PrintVectorInfo(uv1, 0);
+// 	PrintVectorInfo(uv2, 0);
+// 	PrintColorInfo(c0, 0);
+// 	PrintColorInfo(c1, 0);
+// 	PrintColorInfo(c2, 0);
+
 	CTexture* tex = mTextures;
 
 	// 线性插值
 	float xLDetal = (v2.x - v0.x) / (v2.y - v0.y); // Y加1x的增量
 	float xRDetal = (v2.x - v1.x) / (v2.y - v1.y);
 
-	float zLDetal = (1/v2.z - 1/v0.z) / (v2.y - v0.y); // z是按1/z线性变化的
-	float zRDetal = (1/v2.z - 1/v1.z) / (v2.y - v1.y);
+	float zLDetal = (1.0f/v2.z - 1.0f/v0.z) / (v2.y - v0.y); // z是按1/z线性变化的
+	float zRDetal = (1.0f/v2.z - 1.0f/v1.z) / (v2.y - v1.y);
 
 	float uLDetal = (uv2.x / v2.z - uv0.x / v0.z) / (v2.y - v0.y);
-	float uRDetal =  (uv2.x / v2.z - uv0.x / v0.z) / (v2.y - v0.y);
+	float uRDetal =  (uv2.x / v2.z - uv1.x / v1.z) / (v2.y - v1.y);
 
-	float vLDetal = (uv2.y / v2.z - uv1.y / v0.z) / (v2.y - v1.y);
-	float vRDetal =  (uv2.y / v2.z - uv1.y / v0.z) / (v2.y - v1.y);
+	float vLDetal = (uv2.y / v2.z - uv0.y / v0.z) / (v2.y - v0.y);
+	float vRDetal =  (uv2.y / v2.z - uv1.y / v1.z) / (v2.y - v1.y);
 
 	// Y方向对颜色的插值
 	float rLDetal = (c2.r - c0.r) / (v2.y - v0.y);
@@ -901,12 +1087,15 @@ void CGraphics::RasterizeGouraudFaceDown(const Vector4& v0, const Vector4& v1, c
 	float bLDetal = (c2.b - c0.b) / (v2.y - v0.y);
 	float bRDetal = (c2.b - c1.b) / (v2.y - v1.y);
 
-	for(float y = v0.y; y < v2.y; ++y)
+	static int nDbug = 0;
+	for(float y = v0.y; y < v2.y; y += 1.0f)
 	{
 		// 避免浮点误差
-		y = (int)(y+0.5f); 
+		// y = (int)(y+0.5f); 
 
-		int xL, xR;
+		// debug:warning:光栅化部分的所有值避免使用int，很多浮点操作
+		// int xL, xR;
+		float xL, xR;
 		xL = (y - v0.y) * xLDetal + v0.x;
 		xR = (y - v1.y) * xRDetal + v1.x;
 
@@ -914,7 +1103,9 @@ void CGraphics::RasterizeGouraudFaceDown(const Vector4& v0, const Vector4& v1, c
 		zL = (y - v0.y) * zLDetal + 1 / v0.z;
 		zR = (y - v1.y) * zRDetal + 1 / v1.z;
 
-		int divWidth = EqualFloat(xR - xL, 0.0f) ? 1.0f : 1.0f/(xR - xL); // 避免分母为零
+		// debug:warning:光栅化部分的所有值避免使用int，很多浮点操作
+		// int divWidth = EqualFloat(xR - xL, 0.0f) ? 1.0f : 1.0f/(xR - xL); // 避免分母为零
+		float divWidth = EqualFloat(xR - xL, 0.0f) ? 1.0f : 1.0f/(xR - xL); // 避免分母为零
 		float zStep = (zR - zL) * divWidth;
 
 		// x方向color插值
@@ -944,10 +1135,49 @@ void CGraphics::RasterizeGouraudFaceDown(const Vector4& v0, const Vector4& v1, c
 		float u = uL, v = vL;
 		CColor texC(255, 255, 255);
 
+		if(bDebugInfoOpen)
+		{
+			PrintFloatInfo(y, "y");
+			PrintFloatInfo(xL, "xL");
+			PrintFloatInfo(xR, "xR");
+			PrintFloatInfo(zL, "zL");
+			PrintFloatInfo(zR, "zR");
+			PrintFloatInfo((xR - xL), "divWidth");
+			PrintFloatInfo(zStep, "zStep");
+			PrintFloatInfo(uL, "uL");
+			PrintFloatInfo(uR, "uR");
+			PrintFloatInfo(vL, "vL");
+			PrintFloatInfo(vR, "vR");
+			PrintFloatInfo(uStep, "uStep");
+			PrintFloatInfo(vStep, "vStep");
+			PrintFloatInfo(colorRStep, "colorRStep");
+			PrintFloatInfo(colorGStep, "colorRStep");
+			PrintFloatInfo(colorBStep, "colorRStep");
+		}
+
 		float r = crL, g = cgL, b = cbL;
-		for(float x = xL, z = zL; x < xR; x++, z += zStep, u += uStep, v += vStep)
+		for(float x = xL, z = zL; x <= xR; x+=1.0f, z += zStep, u += uStep, v += vStep)
 		{
 			x = (int)(x + 0.5f);
+
+			// 先检查像素是否在屏幕内, 然后检查Zbuffer
+		//	if (x <0 || y < 0 || x > SCREEN_WIDTH || y > SCREEN_HEIGHT)
+		//		continue;
+			//if (!CheckZ(x, y, z))
+			//	continue;
+
+ 			if(tex)
+ 			{
+ 				texC = tex->GetPixelUV(u / z, v / z);
+ 			}
+
+			if(mFillType == FILL_WIREFRAME)
+			{
+				if(x >= 0 && y >= 0 && (x < xL + 1) || (x > xR - 1))
+					SetPixel(x, y, CColor(r, g, b));
+			}else{
+				SetPixel(x, y, CColor(r, g, b)*texC);	// 使用插值颜色填充
+			}
 
 			r = crL + (x - xL)*colorRStep;
 			g = cgL + (x - xL)*colorGStep;
@@ -958,25 +1188,10 @@ void CGraphics::RasterizeGouraudFaceDown(const Vector4& v0, const Vector4& v1, c
 			g = Clamp(g, 0.0f, 255.0f);
 			b = Clamp(b, 0.0f, 255.0f);
 
-			// 先检查像素是否在屏幕内, 然后检查Zbuffer
-			if (x <0 || y < 0 || x > SCREEN_WIDTH || y > SCREEN_HEIGHT)
-				continue;
-			if (!CheckZ(x, y, z))
-				continue;
-
-			if(tex)
-			{
-				texC = tex->GetPixelUV(u / z, v / z);
-			}
-
-			if(mFillType == FILL_WIREFRAME)
-			{
-				if(x > 0 && y > 0 && (x < xL + 1) || (x > xR - 1))
-					SetPixel(x, y, CColor(r, g, b));
-			}else{
-				SetPixel(x, y, CColor(r, g, b)*texC);	// 使用插值颜色填充
-			}
+			
 		}
+
+		nDbug++;
 	}
 }
 
